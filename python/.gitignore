@@ -1,0 +1,4 @@
+.libs
+*.pyc
+planes.py
+planes_wrap.c

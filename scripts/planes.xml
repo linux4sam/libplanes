@@ -1,0 +1,12 @@
+<entry>
+    <title>Planes</title>
+    <link rel="alternate" type="text/html" href="../../applications/resources/planes.png"/>
+    <id>tag:atmel.com,2005:/app/8144940683</id>
+    <published>2012-11-01T15:45:05Z</published>
+    <updated>2012-11-01T15:45:05Z</updated>
+    <author>Unknown</author>
+    <path exec="/opt/ApplicationLauncher/launch-fork.sh" />
+    <arg>/opt/planes/planes-loop.sh</arg>
+    <description>Test Description</description>
+    <link rel="enclosure" type="image/png" href="../../applications/resources/planes.png" />
+</entry>
