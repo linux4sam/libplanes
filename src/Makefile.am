@@ -1,7 +1,7 @@
 AM_CFLAGS = $(WARN_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libplanes.la
-libplanes_la_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS)
+libplanes_la_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
 libplanes_la_SOURCES = kms-crtc.c \
 kms-device.c \
 kms-framebuffer.c \
@@ -12,7 +12,9 @@ draw.c \
 plane.c \
 fb.c \
 common.h \
-common.c
+common.c \
+script.h \
+script.c
 
 libplanesincludedir = ${includedir}/planes
 libplanesinclude_HEADERS = $(top_srcdir)/include/planes/engine.h \

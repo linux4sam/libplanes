@@ -25,6 +25,7 @@
 #include "planes/engine.h"
 #include "planes/kms.h"
 #include "planes/draw.h"
+#include "script.h"
 
 #include <cairo.h>
 #include <drm_fourcc.h>
@@ -143,23 +144,79 @@ struct
 	{"rotate-cclockwise", TRANSFORM_ROTATE_CCLOCKWISE},
 };
 
-static int abs_or_percent(cJSON* val, int relative, int default_value)
+static int logical_to_physical_width(lua_State* state)
+{
+	double width = lua_tonumber(state, 1);
+	double screen_width = script_getvar("SCREEN_WIDTH");
+	double logical_width = script_getvar("LOGICAL_WIDTH");
+
+	lua_pushnumber(state, width / logical_width * screen_width);
+
+	return 1;
+}
+
+static int logical_to_physical_height(lua_State* state)
+{
+	double height = lua_tonumber(state, 1);
+	double screen_height = script_getvar("SCREEN_HEIGHT");
+	double logical_height = script_getvar("LOGICAL_HEIGHT");
+
+	lua_pushnumber(state, height / logical_height * screen_height);
+
+	return 1;
+}
+
+static double lua_evaluate(const char* expr, struct kms_device* device)
+{
+	int cookie;
+	char *msg = NULL;
+	double y = 0.;
+
+	if (!script_init()) {
+		LOG("can't init lua\n");
+		return y;
+	}
+	cookie = script_load(expr, &msg);
+	if (msg) {
+		LOG("can't load expr: %s\n", msg);
+		goto error;
+	}
+
+	script_setfunc("physicalw", logical_to_physical_width);
+	script_setfunc("physicalh", logical_to_physical_height);
+	script_setvar("SCREEN_WIDTH", device->screens[0]->width);
+	script_setvar("SCREEN_HEIGHT", device->screens[0]->height);
+	script_setvar("LOGICAL_WIDTH", 800);
+	script_setvar("LOGICAL_HEIGHT", 480);
+
+	y = script_eval(cookie, &msg);
+	if (msg) {
+		LOG("can't eval: %s\n", msg);
+		goto error;
+	}
+
+error:
+	if (msg)
+		free(msg);
+	script_unref(cookie);
+
+	return y;
+}
+
+static int eval_expr(cJSON* val, struct kms_device* device, int default_value)
 {
 	if (cJSON_IsNumber(val))
 		return val->valueint;
 	else if (cJSON_IsString(val)) {
-		if (strncmp("0x", val->valuestring, strlen("0x")) == 0) {
+		if (strncmp("0x", val->valuestring, strlen("0x")) == 0)
 			return strtol(val->valuestring, NULL, 16);
-		} else if (strstr(val->valuestring, "%")) {
-			double v = strtod(val->valuestring, NULL);
-			return (v / 100.) * (double)relative;
-		}
+		else
+			return lua_evaluate(val->valuestring, device);
 	}
-
 	return default_value;
 }
 
-static void add_text_entry(struct plane_data* data, cJSON* t)
+static void add_text_entry(struct plane_data* data, cJSON* t, struct kms_device* device)
 {
 	int k;
 	cJSON* text_str = cJSON_GetObjectItemCaseSensitive(t, "str");
@@ -171,13 +228,14 @@ static void add_text_entry(struct plane_data* data, cJSON* t)
 		for (k = 0; k < 255; k++) {
 			if (!strlen(data->text[k].str)) {
 				strncpy(data->text[k].str, text_str->valuestring, MAX_TEXT_STR_LEN-1);
-				data->text[k].x = abs_or_percent(text_x, plane_width(data), 0);
-				data->text[k].y = abs_or_percent(text_y, plane_height(data), 0);
+				data->text[k].x = eval_expr(text_x, device, 0);
+				data->text[k].y = eval_expr(text_y, device, 0);
 				if (cJSON_IsString(text_color))
 					data->text[k].color = strtoul(text_color->valuestring, NULL, 0);
 				else
 					data->text[k].color = 0x000000ff;
 
+				data->text[k].size = eval_expr(text_size, device, 24);
 				break;
 			}
 		}
@@ -269,10 +327,10 @@ static struct plane_data* parse_plane(const char* config_file,
 			idx = index->valueint;
 
 		data = plane_create(device, DRM_PLANE_TYPE_PRIMARY, idx,
-				    abs_or_percent(width, device->screens[0]->width,
-						   device->screens[0]->width),
-				    abs_or_percent(height, device->screens[0]->height,
-						   device->screens[0]->height),
+				    eval_expr(width, device,
+					      device->screens[0]->width),
+				    eval_expr(height, device,
+					      device->screens[0]->height),
 				    f);
 		if (!data) {
 			LOG("error: failed to create plane\n");
@@ -283,8 +341,8 @@ static struct plane_data* parse_plane(const char* config_file,
 			strncpy(data->name, name->valuestring, sizeof(data->name)-1);
 
 		plane_set_pos(data,
-			      abs_or_percent(x, device->screens[0]->width, 0),
-			      abs_or_percent(y, device->screens[0]->height, 0));
+			      eval_expr(x, device, 0),
+			      eval_expr(y, device, 0));
 
 		if (cJSON_IsString(image))
 			filename = reldir(config_file, image->valuestring);
@@ -305,10 +363,10 @@ static struct plane_data* parse_plane(const char* config_file,
 		if (cJSON_IsArray(text)) {
 			for (j = 0; j < cJSON_GetArraySize(text);j++) {
 				cJSON* t = cJSON_GetArrayItem(text, j);
-				add_text_entry(data, t);
+				add_text_entry(data, t, device);
 			}
 		} else if (cJSON_IsObject(text)) {
-			add_text_entry(data, text);
+			add_text_entry(data, text, device);
 		}
 
 		if (cJSON_IsTrue(patch))
@@ -341,10 +399,10 @@ static struct plane_data* parse_plane(const char* config_file,
 
 		data = plane_create(device,
 				    DRM_PLANE_TYPE_OVERLAY, idx,
-				    abs_or_percent(width, device->screens[0]->width,
-						   device->screens[0]->width),
-				    abs_or_percent(height, device->screens[0]->height,
-						   device->screens[0]->height),
+				    eval_expr(width, device,
+					      device->screens[0]->width),
+				    eval_expr(height, device,
+					      device->screens[0]->height),
 				    f);
 		if (!data) {
 			LOG("error: failed to create plane\n");
@@ -354,28 +412,21 @@ static struct plane_data* parse_plane(const char* config_file,
 		if (cJSON_IsString(name))
 			strncpy(data->name, name->valuestring, sizeof(data->name)-1);
 
-		plane_set_pos(data,
-			      abs_or_percent(x, device->screens[0]->width, 0),
-			      abs_or_percent(y, device->screens[0]->height, 0));
+		plane_set_pos(data, eval_expr(x, device, 0),
+			      eval_expr(y, device, 0));
 
-		if (cJSON_IsNumber(move_xspeed))
-			data->move.xspeed = move_xspeed->valueint;
-		if (cJSON_IsNumber(move_yspeed))
-			data->move.yspeed = move_yspeed->valueint;
-		if (cJSON_IsNumber(pan_yspeed))
-			data->pan.yspeed = pan_yspeed->valueint;
-		if (cJSON_IsNumber(pan_xspeed))
-			data->pan.xspeed = pan_xspeed->valueint;
-		data->move.xmin = abs_or_percent(move_xmin,
-						 device->screens[0]->width, 0);
-		data->move.xmax = abs_or_percent(move_xmax,
-						 device->screens[0]->width,
-						 device->screens[0]->width);
-		data->move.ymin = abs_or_percent(move_ymin,
-						 device->screens[0]->height, 0);
-		data->move.ymax = abs_or_percent(move_ymax,
-						 device->screens[0]->height,
-						 device->screens[0]->height);
+		data->move.xspeed = eval_expr(move_xspeed, device, 0);
+		data->move.yspeed = eval_expr(move_yspeed, device, 0);
+		data->pan.yspeed = eval_expr(pan_yspeed, device, 0);
+		data->pan.xspeed = eval_expr(pan_xspeed, device, 0);
+		data->move.xmin = eval_expr(move_xmin, device, 0);
+		data->move.xmax = eval_expr(move_xmax,
+					    device,
+					    device->screens[0]->width);
+		data->move.ymin = eval_expr(move_ymin, device, 0);
+		data->move.ymax = eval_expr(move_ymax,
+					    device,
+					    device->screens[0]->height);
 		if (cJSON_IsNumber(scale))
 			plane_set_scale(data, scale->valuedouble);
 
@@ -407,28 +458,28 @@ static struct plane_data* parse_plane(const char* config_file,
 		if (cJSON_IsTrue(patch))
 			p = 1;
 
-		plane_set_alpha(data, abs_or_percent(alpha, 255, 255));
+		plane_set_alpha(data, eval_expr(alpha, device, 255));
 
 		plane_set_pan_pos(data,
-				  abs_or_percent(pan_x,
-						 device->screens[0]->width, 0),
-				  abs_or_percent(pan_y,
-						 device->screens[0]->height, 0));
+				  eval_expr(pan_x,
+					    device, 0),
+				  eval_expr(pan_y,
+					    device, 0));
 
 		plane_set_pan_size(data,
-				   abs_or_percent(pan_width,
-						  device->screens[0]->width, 0),
-				   abs_or_percent(pan_height,
-						  device->screens[0]->height, 0));
+				   eval_expr(pan_width,
+					     device, 0),
+				   eval_expr(pan_height,
+					     device, 0));
 
-		data->sprite.x = abs_or_percent(sprite_x,
-						device->screens[0]->width, 0);
-		data->sprite.y = abs_or_percent(sprite_y,
-						device->screens[0]->height, 0);
-		data->sprite.width = abs_or_percent(sprite_width,
-						    device->screens[0]->width, 0);
-		data->sprite.height = abs_or_percent(sprite_height,
-						     device->screens[0]->height, 0);
+		data->sprite.x = eval_expr(sprite_x,
+					   device, 0);
+		data->sprite.y = eval_expr(sprite_y,
+					   device, 0);
+		data->sprite.width = eval_expr(sprite_width,
+					       device, 0);
+		data->sprite.height = eval_expr(sprite_height,
+						device, 0);
 
 		// if using sprite, initialize pan values
 		if (data->sprite.width && data->sprite.height) {
@@ -470,10 +521,10 @@ static struct plane_data* parse_plane(const char* config_file,
 		if (cJSON_IsArray(text)) {
 			for (j = 0; j < cJSON_GetArraySize(text);j++) {
 				cJSON* t = cJSON_GetArrayItem(text, j);
-				add_text_entry(data, t);
+				add_text_entry(data, t, device);
 			}
 		} else if (cJSON_IsObject(text)) {
-			add_text_entry(data, text);
+			add_text_entry(data, text, device);
 		}
 
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
