@@ -83,6 +83,9 @@ int render_fb_vgradient(struct kms_framebuffer* fb, uint32_t color1,
 /**
  * Load and render the specified image file to the framebuffer.
  *
+ * This will scale the image to the framebuffer width and height if they are
+ * different.
+ *
  * @param fb The framebuffer.
  * @param filename The image file path.
  */

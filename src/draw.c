@@ -290,6 +290,37 @@ int render_fb_vgradient(struct kms_framebuffer* fb, uint32_t color1,
 	return 0;
 }
 
+static cairo_surface_t *
+scale_surface(cairo_surface_t *old_surface,
+	      int old_width, int old_height,
+	      int new_width, int new_height)
+{
+	cairo_surface_t *new_surface = cairo_surface_create_similar(old_surface,
+								    CAIRO_CONTENT_COLOR_ALPHA,
+								    new_width,
+								    new_height);
+	cairo_t *cr = cairo_create (new_surface);
+
+	/* Scale *before* setting the source surface (1) */
+	cairo_scale(cr, (double)new_width / old_width, (double)new_height / old_height);
+	cairo_set_source_surface(cr, old_surface, 0, 0);
+
+	/* To avoid getting the edge pixels blended with 0 alpha, which would
+	 * occur with the default EXTEND_NONE. Use EXTEND_PAD for 1.2 or newer (2)
+	 */
+	cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_REFLECT);
+
+	/* Replace the destination with the source instead of overlaying */
+	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+
+	/* Do the actual drawing */
+	cairo_paint (cr);
+
+	cairo_destroy (cr);
+
+	return new_surface;
+}
+
 int render_fb_image(struct kms_framebuffer* fb, const char* filename)
 {
 	void* ptr;
@@ -317,9 +348,20 @@ int render_fb_image(struct kms_framebuffer* fb, const char* filename)
 
 	image = cairo_image_surface_create_from_png(filename);
 
-	LOG(stdout, "size %d,%d\n",
-	       cairo_image_surface_get_width(image),
-	       cairo_image_surface_get_height(image));
+	LOG("size %dx%d\n",
+	    cairo_image_surface_get_width(image),
+	    cairo_image_surface_get_height(image));
+
+	if (cairo_image_surface_get_width(image) != (int)fb->width ||
+	    cairo_image_surface_get_height(image) != (int)fb->height) {
+
+		LOG("image scaled to %dx%d\n", fb->width, fb->height);
+		image = scale_surface(image,
+				      cairo_image_surface_get_width(image),
+				      cairo_image_surface_get_height(image),
+				      fb->width,
+				      fb->height);
+	}
 
 	cairo_set_source_surface(cr, image, 0, 0);
 	cairo_paint(cr);
