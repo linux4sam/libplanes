@@ -20,9 +20,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-#include "planes/plane.h"
 #include "common.h"
 #include "planes/kms.h"
+#include "planes/plane.h"
 
 #include <drm_fourcc.h>
 #include <errno.h>
@@ -94,7 +94,7 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 		}
 	}
 
-	LOG("plane 0x%x: allocating fb format %s with res %d,%d\n",
+	LOG("plane 0x%x: allocating fb format %s with res %dx%d\n",
 	    plane->plane->id, kms_format_str(format), width, height);
 
 	plane->fb = kms_framebuffer_create(device, width, height, format);

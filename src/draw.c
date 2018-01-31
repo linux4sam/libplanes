@@ -20,6 +20,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+#include "common.h"
 #include "planes/draw.h"
 #include "planes/engine.h"
 
@@ -28,10 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
-static bool m_v = false;
-
-#define LOG(stream, format, ...) if (m_v) fprintf(stream, format, ##__VA_ARGS__)
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -61,8 +58,8 @@ int render_fb_text(struct kms_framebuffer* fb, int x, int y, const char* text,
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
@@ -175,8 +172,8 @@ int render_fb_checker_pattern(struct kms_framebuffer* fb, uint32_t color1, uint3
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
@@ -235,8 +232,8 @@ int render_fb_mesh_pattern(struct kms_framebuffer* fb)
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
@@ -269,8 +266,8 @@ int render_fb_vgradient(struct kms_framebuffer* fb, uint32_t color1,
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
@@ -332,13 +329,12 @@ int render_fb_image(struct kms_framebuffer* fb, const char* filename)
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
-	LOG(stdout, "loading image %s ... ", filename);
-	fflush(stdout);
+	LOG("loading image %s ... ", filename);
 
 	surface = cairo_image_surface_create_for_data(ptr,
 						      cairo_format,
@@ -375,75 +371,6 @@ int render_fb_image(struct kms_framebuffer* fb, const char* filename)
 	return 0;
 }
 
-/*
-static uint32_t reverse32(uint32_t dword)
-{
-	return ((dword >> 24) & 0x000000FF) |
-		((dword >> 8) & 0x0000FF00) |
-		((dword << 8) & 0x00FF0000) |
-		((dword << 24) & 0xFF000000);
-}
-
-static uint16_t reverse16(uint16_t dword)
-{
-	return ((dword >> 8) & 0x000000FF) |
-		((dword << 8) & 0x0000FF00);
-}
-
-static void blit8(uint8_t* src, uint32_t swidth, uint32_t sheight,
-		  uint8_t* dst, uint32_t dwidth, uint32_t dheight)
-{
-	uint32_t x, y;
-	for (x = 0; x < swidth; x++) {
-		for (y = 0; y < sheight; y++) {
-			if (x < dwidth && y < dheight) {
-				uint32_t soff = (y * swidth) + x;
-				uint32_t doff = (y * dwidth) + x;
-				*(dst+doff) = *(src+soff);
-			}
-		}
-	}
-}
-
-static void blit16(uint16_t* src, uint32_t swidth, uint32_t sheight,
-		   uint16_t* dst, uint32_t dwidth, uint32_t dheight,
-		   int reverse_endian)
-{
-	uint32_t x, y;
-	for (x = 0; x < swidth; x++) {
-		for (y = 0; y < sheight; y++) {
-			if (x < dwidth && y < dheight) {
-				uint32_t soff = (y * swidth) + x;
-				uint32_t doff = (y * dwidth) + x;
-				if (reverse_endian)
-					*(dst+doff) = reverse16(*(src+soff));
-				else
-					*(dst+doff) = *(src+soff);
-			}
-		}
-	}
-}
-
-static void blit32(uint32_t* src, uint32_t swidth, uint32_t sheight,
-		   uint32_t* dst, uint32_t dwidth, uint32_t dheight,
-		   int reverse_endian)
-{
-	uint32_t x, y;
-	for (x = 0; x < swidth; x++) {
-		for (y = 0; y < sheight; y++) {
-			if (x < dwidth && y < dheight) {
-				uint32_t soff = (y * swidth) + x;
-				uint32_t doff = (y * dwidth) + x;
-				if (reverse_endian)
-					*(dst+doff) = reverse32(*(src+soff));
-				else
-					*(dst+doff) = *(src+soff);
-			}
-		}
-	}
-}
-*/
-
 int render_fb_image_raw(struct kms_framebuffer* fb, const char* filename)
 {
 	void* ptr;
@@ -453,13 +380,12 @@ int render_fb_image_raw(struct kms_framebuffer* fb, const char* filename)
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
-	LOG(stdout, "loading image %s ... ", filename);
-	fflush(stdout);
+	LOG("loading image %s ... ", filename);
 
 	f = fopen(filename, "rb");
 	if (f) {
@@ -474,14 +400,14 @@ int render_fb_image_raw(struct kms_framebuffer* fb, const char* filename)
 		}
 		fclose(f);
 
-		LOG(stdout, "size %ld\n", length);
+		LOG("size %ld\n", length);
 
 		memcpy(ptr, img, MIN((uint32_t)length,
 				     fb->width * fb->height * kms_format_bpp(fb->format) / 8));
 
 		free(img);
 	} else {
-		LOG(stderr, "error: failed to open file: %s\n", filename);
+		LOG("error: failed to open file: %s\n", filename);
 	}
 
 	kms_framebuffer_unmap(fb);
@@ -502,8 +428,8 @@ int flip_fb_horizontal(struct kms_framebuffer* fb)
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 
@@ -555,8 +481,8 @@ int flip_fb_vertical(struct kms_framebuffer* fb)
 
 	err = kms_framebuffer_map(fb, &ptr);
 	if (err < 0) {
-		LOG(stderr, "error: kms_framebuffer_map() failed: %s\n",
-			strerror(-err));
+		LOG("error: kms_framebuffer_map() failed: %s\n",
+		    strerror(-err));
 		return -1;
 	}
 

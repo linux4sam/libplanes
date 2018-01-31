@@ -1,8 +1,6 @@
 /*
- * Copyright 2008 Tungsten Graphics
- *   Jakob Bornecrantz <jakob@tungstengraphics.com>
- * Copyright 2008 Intel Corporation
- *   Jesse Barnes <jesse.barnes@intel.com>
+ * Copyright (C) 2017 Microchip Technology Inc.  All rights reserved.
+ *   Joshua Henderson <joshua.henderson@microchip.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +20,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-
 #ifndef PLANES_COMMON_H
 #define PLANES_COMMON_H
 

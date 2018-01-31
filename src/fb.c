@@ -21,6 +21,7 @@
  * IN THE SOFTWARE.
  */
 
+#include "common.h"
 #include "planes/fb.h"
 #include "planes/kms.h"
 #include <errno.h>
@@ -28,10 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <xf86drm.h>
-
-static bool m_v = false;
-
-#define LOG(stream, format, ...) if (m_v) fprintf(stream, format, ##__VA_ARGS__)
 
 void* fb_gem_map(struct kms_device* device, uint32_t name, uint32_t* size)
 {
@@ -44,7 +41,7 @@ void* fb_gem_map(struct kms_device* device, uint32_t name, uint32_t* size)
 	gem.name = name;
 	err = drmIoctl(device->fd, DRM_IOCTL_GEM_OPEN, &gem);
 	if (err < 0) {
-		LOG(stderr, "could not flink %s\n", strerror(-err));
+		LOG("could not flink %s\n", strerror(-err));
 		return NULL;
 	}
 
@@ -53,7 +50,7 @@ void* fb_gem_map(struct kms_device* device, uint32_t name, uint32_t* size)
 
 	err = drmIoctl(device->fd, DRM_IOCTL_MODE_MAP_DUMB, &args);
 	if (err < 0) {
-		LOG(stderr, "could not map dumb %s\n", strerror(-errno));
+		LOG("could not map dumb %s\n", strerror(-errno));
 		return NULL;
 	}
 
@@ -63,7 +60,7 @@ void* fb_gem_map(struct kms_device* device, uint32_t name, uint32_t* size)
 	ptr = mmap(0, gem.size, PROT_READ | PROT_WRITE, MAP_SHARED,
 		   device->fd, args.offset);
 	if (ptr == MAP_FAILED) {
-		LOG(stderr, "could not mmap dumb %s\n", strerror(-errno));
+		LOG("could not mmap dumb %s\n", strerror(-errno));
 		return NULL;
 	}
 
