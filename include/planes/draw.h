@@ -51,7 +51,7 @@ extern "C" {
  * @param color RGB color to use for foreground color.
  */
 int render_fb_text(struct kms_framebuffer* fb, int x, int y, const char* text,
-		   uint32_t color);
+		   uint32_t color, float size);
 
 /**
  * Render a checker pattern to the framebuffer.

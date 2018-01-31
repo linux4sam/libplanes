@@ -58,7 +58,8 @@ static void configure_plane(struct plane_data* plane, uint32_t colors[2],
 	for (x = 0; x < 255;x++)
 		if (strlen(plane->text[x].str))
 			render_fb_text(plane->fb, plane->text[x].x, plane->text[x].y,
-				       plane->text[x].str, plane->text[x].color);
+				       plane->text[x].str, plane->text[x].color,
+				       plane->text[x].size);
 }
 
 /*
@@ -223,6 +224,7 @@ static void add_text_entry(struct plane_data* data, cJSON* t, struct kms_device*
 	cJSON* text_x = cJSON_GetObjectItemCaseSensitive(t, "x");
 	cJSON* text_y = cJSON_GetObjectItemCaseSensitive(t, "y");
 	cJSON* text_color = cJSON_GetObjectItemCaseSensitive(t, "color");
+	cJSON* text_size = cJSON_GetObjectItemCaseSensitive(t, "size");
 
 	if (cJSON_IsString(text_str)) {
 		for (k = 0; k < 255; k++) {

@@ -50,7 +50,7 @@ static cairo_format_t drm2cairo(uint32_t format)
 }
 
 int render_fb_text(struct kms_framebuffer* fb, int x, int y, const char* text,
-		    uint32_t color)
+		   uint32_t color, float size)
 {
 	void* ptr;
 	int err;
@@ -74,7 +74,9 @@ int render_fb_text(struct kms_framebuffer* fb, int x, int y, const char* text,
 
 	parse_color(color, &rgba);
 	cairo_set_source_rgba(cr, rgba.r, rgba.g, rgba.b, rgba.a);
-	cairo_set_font_size(cr, 24.0);
+	cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL,
+			       CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(cr, size);
 	cairo_move_to(cr, x, y);
 	cairo_show_text(cr, text);
 	cairo_stroke(cr);

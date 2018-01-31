@@ -123,6 +123,7 @@ struct plane_data
 		int x;
 		int y;
 		uint32_t color;
+		float size;
 	} text[255];
 };
 
