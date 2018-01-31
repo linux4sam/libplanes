@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	int fd, err;
 	const char* config_file = "default.config";
 	const char* device_file = "atmel-hlcdc";
-	uint32_t framedelay = 16;
+	uint32_t framedelay = 33;
 	uint32_t max_frames = 0;
 	struct plane_data** planes;
 	struct stat s;
