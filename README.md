@@ -1,3 +1,6 @@
+<img src="doc/logo55.png" />
+<img src="doc/microchip_logo.png" align="right" />
+
 # Microchip Hardware LCD Plane Library
 
 This is a library that provides support for working with LCD controller hardware
@@ -27,20 +30,33 @@ is as follows:
   - High End Overlay (HEO)
 
 
+## Dependencies
+
+- libdrm >= 2.4.0
+- cJSON >= 1.6.0
+- lua >= 5.3.1
+- cairo >= 1.14.6
+- Python >= 2.7
+- swig
+- directfb >= 1.7.0 (optional)
+
 ## Building
 
-libdrm and cairo are required dependencies.  To cross compile, put the cross
-gcc path in your environment PATH variable and use the appropriate prefix for
---host on the configure line.
+Make sure you have the required dependencis listed above.  To cross compile, put
+the cross gcc path in your environment PATH variable and use the appropriate
+prefix for --host on the configure line.  For example:
 
     ./autogen.sh
     ./configure --host=arm-buildroot-linux-gnueabihf
     make
 
-If you wish to statically link the applications, add ``--enable-static --disable-shared``
-to your configure line.
+If you wish to statically link the applications, add the following to your
+configure line:
 
-## API Dpocumentation
+    ./configure --enable-static --disable-shared LDFLAGS="-static"
+
+
+## API Documentation
 
 If you have doxygen installed, you can generate the API documentation by running:
 
@@ -50,7 +66,8 @@ The resulting documentation will be in the doc directory.
 
 ## Python Bindings
 
-Full Python bindings are provided, generated with swig.
+Full Python bindings are provided, generated with swig.  You can find examples
+in the `python` directory.
 
 ## Applications
 

@@ -1,13 +1,14 @@
 # Plane Engine Config File Format
 
-The config file is a strict [JSON][1] fomatted file. This data is loaded to configure
-planes and optionally engine parameters. Unknown names will be ignored.
+The config file is a strict [JSON][1] fomatted file. This data is loaded to
+configure planes and optionally engine parameters. Unknown names will be
+ignored.
 
 [1]: http://www.json.org/
 
 ## Integers
-Integers can be specified as a literal integer (255), a hexadecimal integer
-("0xFF"), and also in some cases as a relative percent ("50%").
+Integers can be specified as a literal integer (255) or a hexadecimal integer
+("0xFF").  They can also be LUA expressions.
 
 ## Colors
 All colors in the config file, irrelevant of the actual plane format, use a
@@ -110,6 +111,11 @@ The DRM format of the plane.  This is a string representation of any format in
 libdrm `<drm_fourcc.h>`.
 * Type: String
 * Example: `"format": "DRM_FORMAT_ARGB8888"`
+
+#### root:planes[]:patch
+Display a patch mesh pattern.
+* Type: Boolean
+* Example: `"patch": true`
 
 #### root:planes[]:scale
 A floating point value for the scale of the plane, where 1.0 is unscaled.
@@ -304,3 +310,8 @@ this position is relative to the bottom left of the text.
 The foreground color of the text.
 * Type: Integer
 * Example: `"color": "0x000000ff"`
+
+#### root:planes[]:text:size
+The font point size.
+* Type: Integer/Float
+* Example: `"size": 24.0`
