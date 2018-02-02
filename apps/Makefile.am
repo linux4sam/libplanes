@@ -7,7 +7,7 @@ bin_PROGRAMS += dfblayers
 endif
 
 planes_SOURCES = planes.c
-planes_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CAIRO_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
+planes_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
 planes_LDADD = $(top_builddir)/src/libplanes.la $(LIBDRM_LIBS) $(CAIRO_LIBS) $(CJSON_LIBS) $(LUA_LIBS)
 planesdir = $(prefix)/share/@PACKAGE@
 planes_DATA = $(wildcard $(top_srcdir)/configs/*.png) \

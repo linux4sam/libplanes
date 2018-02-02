@@ -20,9 +20,11 @@ pythonextdir = $(PYTHON_SITE_PKG)/planes
 pythonext_SCRIPTS = __init__.pyc
 pythonext_LTLIBRARIES = _planes.la
 _planes_la_SOURCES = planes_wrap.c $(SWIG_SRC)
-_planes_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS) $(LIBDRM_CFLAGS) $(CAIRO_CFLAGS)
+_planes_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
 _planes_la_LDFLAGS = -module
-_planes_la_LIBADD = $(top_builddir)/src/libplanes.la -lcairo -ldrm
+_planes_la_LIBADD = $(top_builddir)/src/libplanes.la $(LIBDRM_LIBS) $(CAIRO_LIBS) $(CJSON_LIBS) $(LUA_LIBS)
+
+
 CLEANFILES = $(PYTHON_BUILT) $(pythonext_SCRIPTS)
 PYTHONC_V_GEN = $(pythonc_v_GEN_$(V))
 pythonc_v_GEN_ = $(pythonc_v_GEN_$(AM_DEFAULT_VERBOSITY))
