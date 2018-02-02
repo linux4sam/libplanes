@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <drm_fourcc.h>
 #include <sys/ioctl.h>
+#include <xf86drm.h>
 
 #include "common.h"
 #include "planes/kms.h"
@@ -164,23 +165,15 @@ static void kms_device_probe_planes(struct kms_device *device)
 void kms_device_probe_framebuffers(struct kms_device *device)
 {
 	drmModeRes *res;
-	int i;
 
 	res = drmModeGetResources(device->fd);
 	if (!res)
 		return;
 
-	LOG("fbs: %d\n", res->count_fbs);
-	LOG("crtcs: %d\n", res->count_crtcs);
+	LOG("fbs count: %d\n", res->count_fbs);
+	LOG("crtcs count: %d\n", res->count_crtcs);
 	LOG("max_width: %d\n", res->max_width);
 	LOG("max_height: %d\n", res->max_height);
-
-	for (i = 0; i < res->count_fbs; i++) {
-		drmModeFBPtr fb = drmModeGetFB(device->fd, res->fbs[i]);
-		if (fb) {
-			LOG("0x%02x\n", fb->handle);
-		}
-	}
 
 	drmModeFreeResources(res);
 }
@@ -202,6 +195,13 @@ static void kms_device_probe(struct kms_device *device)
 struct kms_device *kms_device_open(int fd)
 {
 	struct kms_device *device;
+	int err;
+
+	err = drmSetClientCap(fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+	if (err < 0) {
+		fprintf(stderr, "error: drmSetClientCap() failed: %d\n", err);
+		return NULL;
+	}
 
 	device = calloc(1, sizeof(*device));
 	if (!device)

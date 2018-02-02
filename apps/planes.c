@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	bool verbose = false;
 	unsigned int i;
 	int opt, idx;
-	int fd, err;
+	int fd;
 	const char* config_file = "default.config";
 	const char* device_file = "atmel-hlcdc";
 	uint32_t framedelay = 33;
@@ -122,12 +122,6 @@ int main(int argc, char *argv[])
 	fd = drmOpen(device_file, NULL);
 	if (fd < 0) {
 		fprintf(stderr, "error: open() failed: %m\n");
-		return 1;
-	}
-
-	err = drmSetClientCap(fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
-	if (err < 0) {
-		fprintf(stderr, "error: drmSetClientCap() failed: %d\n", err);
 		return 1;
 	}
 

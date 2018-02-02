@@ -82,7 +82,7 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 	plane->plane = kms_device_find_plane_by_type(device, type, index);
 
 	if (!plane->plane) {
-		LOG("error: no overlay plane found\n");
+		LOG("error: no plane found by type and index %d:%d\n", type, index);
 		goto abort;
 	}
 
