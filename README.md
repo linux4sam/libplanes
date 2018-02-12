@@ -1,11 +1,10 @@
-<img src="doc/logo55.png" />
-<img src="doc/microchip_logo.png" align="right" />
+![Microchip](doc/microchip_logo.png)
 
 # Microchip Hardware LCD Plane Library
 
-This is a library that provides support for working with LCD controller hardware
-planes found on SAMA5 hardware.  It directly uses libdrm to manipulate and
-control the hardware planes with support for using cairo for basic drawing
+libplanes is a library that provides support for working with LCD controller
+hardware planes found on SAMA5 hardware.  It directly uses libdrm to manipulate
+and control the hardware planes with support for using cairo for basic drawing
 primitives.  It includes basic support for parsing a configuration file used to
 describe the layout and configuration of the planes, but this can also be done
 manually.
@@ -110,3 +109,8 @@ DirectFB API and moves them around on the screen showing little CPU usage in the
 process.
 
     ./dfblayers
+
+## License
+
+libplanes is released under the terms of the `MIT` license. See the `COPYING`
+file for more information.
