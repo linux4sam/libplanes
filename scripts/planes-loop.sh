@@ -1,7 +1,5 @@
 #!/bin/sh
 
-. /opt/ApplicationLauncher/demo.config
-
 eval "$DEMO_LEAVE"
 
 (
