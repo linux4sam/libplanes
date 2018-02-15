@@ -7,6 +7,7 @@ eval "$DEMO_LEAVE"
     for f in *.config;
     do
 	planes -f 1000 -c $f;
+	./splash.py
     done
 ) &
 pid=$!
