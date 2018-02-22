@@ -3,11 +3,14 @@
 eval "$DEMO_LEAVE"
 
 (
-    cd /usr/share/planes/
-    for f in *.config;
+    while true
     do
-	planes -f 1000 -c $f;
-	./splash.py
+	cd /usr/share/planes/
+	for f in *.config;
+	do
+	    planes -f 1000 -c $f;
+	    ./splash.py
+	done
     done
 ) &
 pid=$!
