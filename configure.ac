@@ -127,5 +127,5 @@ AC_CONFIG_FILES([Makefile
 	apps/Makefile
 	python/Makefile
 	libplanes.pc
-	Doxyfile])
+	docs/Doxyfile])
 AC_OUTPUT

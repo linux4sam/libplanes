@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: libplanes
-Description: Utility library for working with hardware planes
+Description: Microchip library for working with hardware LCD planes
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lplanes
 Cflags: -I${includedir} -I${includedir}/planes

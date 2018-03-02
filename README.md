@@ -1,4 +1,4 @@
-![Microchip](doc/microchip_logo.png)
+![Microchip](docs/microchip_logo.png)
 
 # Microchip Hardware LCD Plane Library
 
@@ -59,9 +59,9 @@ configure line:
 
 If you have doxygen installed, you can generate the API documentation by running:
 
-    make doc
+    make docs
 
-The resulting documentation will be in the doc directory.
+The resulting documentation will be in the docs directory.
 
 ## Python Bindings
 

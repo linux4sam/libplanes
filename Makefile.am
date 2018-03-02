@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src apps python
 
-EXTRA_DIST = README.md COPYING Doxyfile.in
+EXTRA_DIST = README.md COPYING docs/Doxyfile.in
 
-.PHONY: doc
+.PHONY: docs
 
-doc: Doxyfile
-	@doxygen
+docs: docs/Doxyfile
+	@cd docs && doxygen

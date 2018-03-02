@@ -92,7 +92,7 @@ enum {
 /**
  * Parse a JSON plane configuration file and populate the planes array.
  *
- * See @ref doc/config.md for information on the config file format.
+ * See @ref docs/config.md for information on the config file format.
  *
  * @note This will overwrite anything that may already be in the array.
  *
