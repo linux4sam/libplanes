@@ -37,53 +37,32 @@ def phh(height):
 fd = os.open("/dev/dri/card0", os.O_RDWR)
 device = kms_device_open(fd);
 
-logo = plane_create(device, 0, 0,
-                    int(phw(120.0)), int(phh(28.0)),
-                    kms_format_val("DRM_FORMAT_ARGB8888"))
-plane_set_pos(logo, int(phw(10.0)), int(phh(10.0)))
-render_fb_image(logo.fb, "logo.png")
-
-logo2 = plane_create(device, 0, 1,
-                     int(phw(55.0)), int(phh(55.0)),
-                     kms_format_val("DRM_FORMAT_ARGB8888"))
-plane_set_pos(logo2,
-              device.get_screens(0).width - int(phw(55.0)), 0)
-render_fb_image(logo2.fb, "logo55.png")
-
 plane = plane_create(device, 0, 2,
                      device.get_screens(0).width,
                      device.get_screens(0).height,
                      kms_format_val("DRM_FORMAT_XRGB8888"))
-render_fb_text(plane.fb, int(phw(50)), int(phh(200)), "libplanes Demo", 0xFF0000FF, phw(40))
+render_fb_image(plane.fb, "background5.png")
 
 msgs = [
-    'libplanes is where it\'s at.',
-    'This uses libplanes for all animations.',
+    'This demo uses LCD planes for all animations.',
     'This is a Python script using libplanes.',
     'libplanes makes use of hardware LCD planes.',
     'Scale, rotate, alpha blend, crop, pan ...',
-    'Amazin\' graphics with powerful frameworks.',
-    'No CPU is required for many 2D effects.',
-    'No CPU is required for many 2D effects.',
     'No CPU is required for many 2D effects.',
     'Awesome 3D parallax effects.',
-    'libplanes with Qt for responsive interfaces.',
-    'No videos. This is all realtime animation.',
-    'See your Microchip representative today.'
+    'Simple 2D sprite animation.',
+    'No videos. This is all realtime animation.'
 ]
 
 srandom = random.SystemRandom()
-render_fb_text(plane.fb, int(phw(50)), int(phh(300)), srandom.choice(msgs), 0xFFFFFFFF, phw(30))
+render_fb_text(plane.fb, int(phw(50)), int(phh(220)), srandom.choice(msgs), 0xffffffff, phw(30))
 
-plane_apply(logo)
-plane_apply(logo2)
-
-for i in range(1, 120, 1):
+for i in range(50, 80, 1):
     plane_set_scale(plane, i / 100.0)
     plane_apply(plane)
-    time.sleep(0.02)
+    time.sleep(0.01)
 
-for i in range(119, 90, -1):
+for i in range(81, 91, 1):
     plane_set_scale(plane, i / 100.0)
     plane_apply(plane)
     time.sleep(0.03)
@@ -91,6 +70,6 @@ for i in range(119, 90, -1):
 for i in range(91, 101, 1):
     plane_set_scale(plane, i / 100.0)
     plane_apply(plane)
-    time.sleep(0.01)
+    time.sleep(0.05)
 
 time.sleep(5)

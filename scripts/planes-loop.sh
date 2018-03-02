@@ -3,10 +3,11 @@
 eval "$DEMO_LEAVE"
 
 (
+    cd /usr/share/planes/
+
     while true
     do
-	cd /usr/share/planes/
-	for f in *.config;
+	for f in *.config
 	do
 	    planes -f 1000 -c $f;
 	    ./splash.py
