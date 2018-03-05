@@ -21,7 +21,7 @@ while true; do
     if ! evtest --query /dev/input/event0 EV_KEY 11; then
 	echo "killing $pid ..."
 	kill -9 $pid
-	killall -9 planes
+	killall -9 planes splash.py
 	break
     fi
 
