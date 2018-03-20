@@ -41,7 +41,7 @@ plane = plane_create(device, 0, 2,
                      device.get_screens(0).width,
                      device.get_screens(0).height,
                      kms_format_val("DRM_FORMAT_XRGB8888"))
-render_fb_image(plane.fb, "background5.png")
+render_fb_image(plane.fb, os.path.join(os.path.dirname(__file__), 'background5.png'))
 
 msgs = [
     'This demo uses LCD planes for all animations.',
