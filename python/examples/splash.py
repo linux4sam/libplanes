@@ -21,7 +21,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-from planes import *
+import planes
 import os
 import random
 import time
@@ -35,13 +35,14 @@ def phh(height):
     return height / 480.0 * device.get_screens(0).height
 
 fd = os.open("/dev/dri/card0", os.O_RDWR)
-device = kms_device_open(fd);
+device = planes.kms_device_open(fd);
 
-plane = plane_create(device, 0, 2,
-                     device.get_screens(0).width,
-                     device.get_screens(0).height,
-                     kms_format_val("DRM_FORMAT_XRGB8888"))
-render_fb_image(plane.fb, os.path.join(os.path.dirname(__file__), 'background5.png'))
+plane = planes.plane_create(device, 0, 2,
+                            device.get_screens(0).width,
+                            device.get_screens(0).height,
+                            planes.kms_format_val("DRM_FORMAT_XRGB8888"))
+planes.render_fb_image(plane.fb,
+                       os.path.join(os.path.dirname(__file__), 'background5.png'))
 
 msgs = [
     'This demo uses LCD planes for all animations.',
@@ -55,21 +56,22 @@ msgs = [
 ]
 
 srandom = random.SystemRandom()
-render_fb_text(plane.fb, int(phw(50)), int(phh(220)), srandom.choice(msgs), 0xffffffff, phw(30))
+planes.render_fb_text(plane.fb, int(phw(50)), int(phh(220)),
+                      srandom.choice(msgs), 0xffffffff, phw(30))
 
 for i in range(50, 80, 1):
-    plane_set_scale(plane, i / 100.0)
-    plane_apply(plane)
+    planes.plane_set_scale(plane, i / 100.0)
+    planes.plane_apply(plane)
     time.sleep(0.01)
 
 for i in range(81, 91, 1):
-    plane_set_scale(plane, i / 100.0)
-    plane_apply(plane)
+    planes.plane_set_scale(plane, i / 100.0)
+    planes.plane_apply(plane)
     time.sleep(0.03)
 
 for i in range(91, 101, 1):
-    plane_set_scale(plane, i / 100.0)
-    plane_apply(plane)
+    planes.plane_set_scale(plane, i / 100.0)
+    planes.plane_apply(plane)
     time.sleep(0.05)
 
 time.sleep(5)

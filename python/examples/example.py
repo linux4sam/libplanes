@@ -21,7 +21,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-from planes import *
+import planes
 import os
 import sys
 
@@ -29,27 +29,27 @@ if sys.version_info[0] == 3:
     raw_input = input
 
 # open the DRI device
-device = kms_device_open(os.open("/dev/dri/card0", os.O_RDWR));
+device = planes.kms_device_open(os.open("/dev/dri/card0", os.O_RDWR));
 
 # create the primary plane
-primary = plane_create(device, 1, 0,
-                        device.get_screens(0).width,
-                        device.get_screens(0).height, 0)
+primary = planes.plane_create(device, 1, 0,
+                              device.get_screens(0).width,
+                              device.get_screens(0).height, 0)
 
 bs = 16
 
 # create each of the overlays
-overlays = [plane_create(device, 0, i, bs*3, bs*3, 0) for i in xrange(3)]
+overlays = [planes.plane_create(device, 0, i, bs*3, bs*3, 0) for i in xrange(3)]
 
 # render the primary plane
-render_fb_checker_pattern(primary.fb, 0x000000ff, 0xffffffff)
-plane_apply(primary)
+planes.render_fb_checker_pattern(primary.fb, 0x000000ff, 0xffffffff)
+planes.plane_apply(primary)
 
 # position each of the overlays and render a color
 colors = [0xff0000aa, 0x00ff00aa, 0x0000ffaa]
 for i, overlay in enumerate(overlays):
-    render_fb_checker_pattern(overlay.fb, colors[i], colors[i])
-    plane_set_pos(overlay, bs*3*i, bs*3*i)
-    plane_apply(overlay)
+    planes.render_fb_checker_pattern(overlay.fb, colors[i], colors[i])
+    planes.plane_set_pos(overlay, bs*3*i, bs*3*i)
+    planes.plane_apply(overlay)
 
 raw_input("Press Enter to continue...")
