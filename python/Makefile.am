@@ -17,7 +17,7 @@ PYTHON_BUILT = planes_wrap.c planes.py
 BUILT_SOURCES = $(PYTHON_BUILT)
 
 pythonextdir = $(PYTHON_SITE_PKG)/planes
-pythonext_SCRIPTS = __init__.pyc planes.pyc
+pythonext_SCRIPTS = __init__.py __init__.pyc planes.py planes.pyc
 pythonext_LTLIBRARIES = _planes.la
 _planes_la_SOURCES = planes_wrap.c $(SWIG_SRC)
 _planes_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
