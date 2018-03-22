@@ -59,19 +59,15 @@ srandom = random.SystemRandom()
 planes.render_fb_text(plane.fb, int(phw(50)), int(phh(220)),
                       srandom.choice(msgs), 0xffffffff, phw(30))
 
-for i in range(50, 80, 1):
-    planes.plane_set_scale(plane, i / 100.0)
+x = 1.0
+s = 50.0
+while True:
+    s = s + (1.0 * x)
+    if s > 100:
+        break
+    planes.plane_set_scale(plane, s / 100.0)
     planes.plane_apply(plane)
     time.sleep(0.01)
-
-for i in range(81, 91, 1):
-    planes.plane_set_scale(plane, i / 100.0)
-    planes.plane_apply(plane)
-    time.sleep(0.03)
-
-for i in range(91, 101, 1):
-    planes.plane_set_scale(plane, i / 100.0)
-    planes.plane_apply(plane)
-    time.sleep(0.05)
+    x = x - 0.01
 
 time.sleep(5)
