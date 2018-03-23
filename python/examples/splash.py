@@ -63,10 +63,12 @@ x = 1.0
 s = 50.0
 while True:
     s = s + (1.0 * x)
-    if s > 100:
-        break
+    if s > 100.0:
+        s = 100.0
     planes.plane_set_scale(plane, s / 100.0)
     planes.plane_apply(plane)
+    if s >= 100.0:
+        break
     time.sleep(0.01)
     x = x - 0.01
 
