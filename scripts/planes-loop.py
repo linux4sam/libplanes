@@ -16,13 +16,12 @@ def run():
     global abort
     while not abort:
         for config in glob.glob("*.config"):
-            print config
-            proc = Popen(["planes", "-f", "500", "-c", config])
+            proc = Popen(["planes", "-f", "500", "-c", config], close_fds=True)
             child_pid = proc.pid
             proc.wait()
             if abort:
                 break;
-            proc = Popen(["./splash.py"])
+            proc = Popen(["./splash.py"], close_fds=True)
             child_pid = proc.pid
             proc.wait()
             if abort:
