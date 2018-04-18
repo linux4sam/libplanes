@@ -24,7 +24,7 @@ _planes_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAG
 _planes_la_LDFLAGS = -module
 _planes_la_LIBADD = $(top_builddir)/src/libplanes.la $(LIBDRM_LIBS) $(CAIRO_LIBS) $(CJSON_LIBS) $(LUA_LIBS)
 
-CLEANFILES = $(PYTHON_BUILT) $(pythonext_SCRIPTS)
+CLEANFILES = $(PYTHON_BUILT) __init__.pyc planes.py planes.pyc
 PYTHONC_V_GEN = $(pythonc_v_GEN_$(V))
 pythonc_v_GEN_ = $(pythonc_v_GEN_$(AM_DEFAULT_VERBOSITY))
 pythonc_v_GEN_0 = @echo "  PYTHONC " $@;
