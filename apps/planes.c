@@ -60,13 +60,14 @@ static void exit_handler(int s) {
 
 int main(int argc, char *argv[])
 {
-	static const char opts[] = "hvc:d:f:";
+	static const char opts[] = "hvoc:d:f:";
 	static struct option options[] = {
 		{ "help", no_argument, 0, 'h' },
 		{ "verbose", no_argument, 0, 'v' },
 		{ "config", required_argument, 0, 'c' },
 		{ "device", required_argument, 0, 'd' },
 		{ "frames", required_argument, 0, 'f' },
+		{ "open", no_argument, 0, 'o' },
 		{ 0, 0, 0, 0 },
 	};
 	bool verbose = false;
@@ -80,6 +81,7 @@ int main(int argc, char *argv[])
 	struct plane_data** planes;
 	struct stat s;
 	struct sigaction sig_handler;
+	bool use_plain_open = false;
 
 	if (stat(config_file, &s) &&
 	    !stat("/usr/share/planes/default.config", &s)) {
@@ -103,6 +105,9 @@ int main(int argc, char *argv[])
 		case 'f':
 			max_frames = strtoll(optarg, NULL, 0);
 			break;
+		case 'o':
+			use_plain_open = true;
+			break;
 		default:
 			fprintf(stderr, "error: unknown option \"%c\"\n", opt);
 			return 1;
@@ -119,7 +124,10 @@ int main(int argc, char *argv[])
 	sig_handler.sa_flags = 0;
 	sigaction(SIGINT, &sig_handler, NULL);
 
-	fd = drmOpen(device_file, NULL);
+	if (use_plain_open)
+		fd = open(device_file, O_RDWR, 0);
+	else
+		fd = drmOpen(device_file, NULL);
 	if (fd < 0) {
 		fprintf(stderr, "error: open() failed: %m\n");
 		return 1;
