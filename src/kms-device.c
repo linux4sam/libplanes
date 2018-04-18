@@ -199,8 +199,7 @@ struct kms_device *kms_device_open(int fd)
 
 	err = drmSetClientCap(fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
 	if (err < 0) {
-		fprintf(stderr, "error: drmSetClientCap() failed: %d\n", err);
-		return NULL;
+		LOG("error: drmSetClientCap() failed: %d\n", err);
 	}
 
 	device = calloc(1, sizeof(*device));
