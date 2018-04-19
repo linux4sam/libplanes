@@ -83,7 +83,7 @@ static const char* reldir(const char* path, const char* filename)
 		return res;
 	}
 
-	return filename;
+	return filename ? strdup(filename) : 0;
 }
 
 static cJSON* load_config(const char* filename)
@@ -378,6 +378,11 @@ static struct plane_data* parse_plane(const char* config_file,
 			plane_set_rotate(data, rotate->valueint);
 
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
+
+		if (filename)
+			free(filename);
+		if (filename_raw)
+			free(filename_raw);
 	}
 	else if (!strcmp("overlay", type->valuestring)) {
 		const char* filename = 0;
@@ -530,6 +535,11 @@ static struct plane_data* parse_plane(const char* config_file,
 		}
 
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
+
+		if (filename)
+			free(filename);
+		if (filename_raw)
+			free(filename_raw);
 	}
 	else {
 		LOG("error: unknown plane type\n");
