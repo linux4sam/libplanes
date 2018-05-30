@@ -51,7 +51,7 @@ MAYBE_WARN="-Wall -Wextra \
 -Wsign-compare -Werror-implicit-function-declaration \
 -Wpointer-arith -Wwrite-strings -Wstrict-prototypes \
 -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
--Wpacked -Wswitch-enum -Wmissing-format-attribute \
+-Wpacked -Wswitch-enum \
 -Wstrict-aliasing=2 -Winit-self \
 -Wdeclaration-after-statement -Wold-style-definition \
 -Wno-unused-parameter \
