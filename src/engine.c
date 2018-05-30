@@ -380,9 +380,9 @@ static struct plane_data* parse_plane(const char* config_file,
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
 
 		if (filename)
-			free(filename);
+			free((char*)filename);
 		if (filename_raw)
-			free(filename_raw);
+			free((char*)filename_raw);
 	}
 	else if (!strcmp("overlay", type->valuestring)) {
 		const char* filename = 0;
@@ -537,9 +537,9 @@ static struct plane_data* parse_plane(const char* config_file,
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
 
 		if (filename)
-			free(filename);
+			free((char*)filename);
 		if (filename_raw)
-			free(filename_raw);
+			free((char*)filename_raw);
 	}
 	else {
 		LOG("error: unknown plane type\n");
