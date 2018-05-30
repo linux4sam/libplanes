@@ -12,8 +12,12 @@ AM_INIT_AUTOMAKE([1.10 foreign])
 # Enable quiet compiles on automake 1.11.
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CC_C99
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
 
 if test "x$ac_cv_prog_cc_c99" = xno; then
 	AC_MSG_ERROR([Building planes requires C99 enabled compiler])
@@ -84,6 +88,14 @@ AC_CACHE_CHECK([for supported warning flags], libdrm_cv_warn_cflags, [
 WARN_CFLAGS="$libdrm_cv_warn_cflags"
 AC_SUBST(WARN_CFLAGS)
 
+AC_CHECK_FUNCS([memset munmap strdup strerror strtol strtoul])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h])
+AC_CHECK_HEADER_STDBOOL
+AC_FUNC_MMAP
+AC_TYPE_INT32_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
+
 PKG_CHECK_MODULES(LIBDRM, [libdrm >= 2.4.0], [], [AC_MSG_ERROR([
      libdrm is a hard dependency, but a sufficient version was not found.])])
 
@@ -95,6 +107,10 @@ PKG_CHECK_MODULES(LUA, [lua >= 5.3.1], [], [AC_MSG_ERROR([
 
 PKG_CHECK_MODULES(DIRECTFB, [directfb >= 1.7.0], [have_directfb=yes], [have_directfb=no])
 AM_CONDITIONAL(HAVE_DIRECTFB, [test "x$have_directfb" != "xno"])
+
+if test "x$have_directfb" = "xyes"; then
+   AC_C_INLINE
+fi
 
 PKG_CHECK_MODULES(CAIRO, [cairo >= 1.14.6], [], [AC_MSG_ERROR([
      cairo is a hard dependency, but a sufficient version was not found.])])
