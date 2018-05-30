@@ -21,7 +21,7 @@
  * IN THE SOFTWARE.
  */
 #include "common.h"
-#include "planes/kms.h"
+#include "p_kms.h"
 #include "planes/plane.h"
 
 #include <drm_fourcc.h>

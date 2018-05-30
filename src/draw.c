@@ -21,6 +21,7 @@
  * IN THE SOFTWARE.
  */
 #include "common.h"
+#include "p_kms.h"
 #include "planes/draw.h"
 #include "planes/engine.h"
 

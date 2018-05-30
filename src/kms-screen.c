@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "planes/kms.h"
+#include "p_kms.h"
 
 static void kms_screen_probe(struct kms_screen *screen)
 {

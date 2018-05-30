@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "planes/kms.h"
+#include "p_kms.h"
 
 static int kms_plane_probe(struct kms_plane *plane)
 {

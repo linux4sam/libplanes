@@ -26,7 +26,7 @@
 #endif
 
 #include "common.h"
-#include "planes/kms.h"
+#include "p_kms.h"
 #include "xf86drm.h"
 #include <drm_fourcc.h>
 #include <errno.h>

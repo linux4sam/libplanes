@@ -14,7 +14,8 @@ fb.c \
 common.h \
 common.c \
 script.h \
-script.c
+script.c \
+p_kms.h
 
 libplanesincludedir = ${includedir}/planes
 libplanesinclude_HEADERS = $(top_srcdir)/include/planes/engine.h \

@@ -50,22 +50,26 @@ struct kms_device {
 	unsigned int num_planes;
 };
 
+/**
+ * Open and probe the KMS device.
+ *
+ * @param fd File descriptor for the DRM device.
+ */
 struct kms_device *kms_device_open(int fd);
+
+/**
+ * Close and cleanup the KMS device.
+ *
+ * @param device The KMS device.
+ */
 void kms_device_close(struct kms_device *device);
 
-struct kms_plane *kms_device_find_plane_by_type(struct kms_device *device,
-						uint32_t type,
-						unsigned int index);
-
+/**
+ * Dump debug information about the KMS device.
+ *
+ * @param device The KMS device.
+ */
 void kms_device_dump(struct kms_device *device);
-
-struct kms_crtc {
-	struct kms_device *device;
-	uint32_t id;
-};
-
-struct kms_crtc *kms_crtc_create(struct kms_device *device, uint32_t id);
-void kms_crtc_free(struct kms_crtc *crtc);
 
 struct kms_framebuffer {
 	struct kms_device *device;
@@ -82,14 +86,6 @@ struct kms_framebuffer {
 	void *ptr;
 };
 
-struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
-					       unsigned int width,
-					       unsigned int height,
-					       uint32_t format);
-void kms_framebuffer_free(struct kms_framebuffer *fb);
-int kms_framebuffer_map(struct kms_framebuffer *fb, void **ptrp);
-void kms_framebuffer_unmap(struct kms_framebuffer *fb);
-
 struct kms_screen {
 	struct kms_device *device;
 	bool connected;
@@ -103,12 +99,6 @@ struct kms_screen {
 	drmModeModeInfo mode;
 };
 
-struct kms_screen *kms_screen_create(struct kms_device *device, uint32_t id);
-void kms_screen_free(struct kms_screen *screen);
-
-int kms_screen_set(struct kms_screen *screen, struct kms_crtc *crtc,
-		   struct kms_framebuffer *fb);
-
 struct kms_plane {
 	struct kms_device *device;
 	struct kms_crtc *crtc;
@@ -119,20 +109,12 @@ struct kms_plane {
 	unsigned int num_formats;
 };
 
-struct kms_plane *kms_plane_create(struct kms_device *device, uint32_t id);
-void kms_plane_free(struct kms_plane *plane);
-
-int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
-		  int x, int y, double scale);
-int kms_plane_set_pan(struct kms_plane *plane, struct kms_framebuffer *fb,
-		      int x, int y, uint32_t px, uint32_t py, uint32_t pw, uint32_t ph, double scale);
-bool kms_plane_supports_format(struct kms_plane *plane, uint32_t format);
-
-void kms_device_probe_framebuffers(struct kms_device *device);
-
-const char* kms_format_str(uint32_t format);
+/**
+ * Return the DRM format for the specific string equivalent.
+ *
+ * @param name The string representation of the DRM format.
+ */
 uint32_t kms_format_val(const char *name);
-int kms_format_bpp(uint32_t format);
 
 #ifdef __cplusplus
 }

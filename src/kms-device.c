@@ -34,7 +34,7 @@
 #include <xf86drm.h>
 
 #include "common.h"
-#include "planes/kms.h"
+#include "p_kms.h"
 
 static const char *const connector_names[] = {
 	"Unknown",

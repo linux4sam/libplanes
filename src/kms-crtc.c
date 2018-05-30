@@ -25,7 +25,7 @@
 #include "config.h"
 #endif
 
-#include "planes/kms.h"
+#include "p_kms.h"
 
 struct kms_crtc *kms_crtc_create(struct kms_device *device, uint32_t id)
 {
