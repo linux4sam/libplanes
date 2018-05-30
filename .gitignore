@@ -4,7 +4,7 @@ Makefile.in
 /autom4te.cache/
 /config.*
 /configure
-/m4/
+m4/*.m4
 /stamp-h?
 .deps/
 .dirstamp
