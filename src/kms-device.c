@@ -476,6 +476,10 @@ int kms_format_bpp(uint32_t format)
 	case DRM_FORMAT_NV61:
 	case DRM_FORMAT_YUV420:
 	case DRM_FORMAT_YVU420:
+	case DRM_FORMAT_YUV422:
+	case DRM_FORMAT_YVU422:
+	case DRM_FORMAT_YUV444:
+	case DRM_FORMAT_YVU444:
 		return 8;
 
 	case DRM_FORMAT_ARGB4444:

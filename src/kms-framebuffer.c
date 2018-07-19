@@ -42,7 +42,33 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 	uint32_t handles[4] = { 0 }, pitches[4] = { 0 }, offsets[4] = { 0 };
 	struct drm_mode_create_dumb args;
 	struct kms_framebuffer *fb;
+	unsigned int virtual_height;
 	int err;
+
+	switch (format)
+	{
+	case DRM_FORMAT_NV12:
+	case DRM_FORMAT_NV21:
+	case DRM_FORMAT_YUV420:
+	case DRM_FORMAT_YVU420:
+		virtual_height = height * 3 / 2;
+		break;
+	case DRM_FORMAT_NV16:
+	case DRM_FORMAT_NV61:
+	case DRM_FORMAT_YUV422:
+	case DRM_FORMAT_YVU422:
+		virtual_height = height * 2;
+		break;
+	case DRM_FORMAT_YUV444:
+	case DRM_FORMAT_YVU444:
+		virtual_height = height * 3;
+		break;
+	default:
+		virtual_height = height;
+		break;
+	}
+
+	LOG("fb virtual size: %d\n", width * virtual_height);
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
@@ -55,7 +81,7 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 
 	memset(&args, 0, sizeof(args));
 	args.width = width;
-	args.height = height;
+	args.height = virtual_height;
 
 	args.bpp = kms_format_bpp(format);
 	if (!args.bpp) {
@@ -73,9 +99,69 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 	fb->pitch = args.pitch;
 	fb->size = args.size;
 
-	handles[0] = fb->handle;
-	pitches[0] = fb->pitch;
-	offsets[0] = 0;
+	switch (format)
+	{
+	case DRM_FORMAT_UYVY:
+	case DRM_FORMAT_VYUY:
+	case DRM_FORMAT_YUYV:
+	case DRM_FORMAT_YVYU:
+		offsets[0] = 0;
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		break;
+	case DRM_FORMAT_NV12:
+	case DRM_FORMAT_NV16:
+	case DRM_FORMAT_NV21:
+	case DRM_FORMAT_NV61:
+		offsets[0] = 0;
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		pitches[1] = pitches[0];
+		offsets[1] = pitches[0] * height;
+		handles[1] = fb->handle;
+		break;
+	case DRM_FORMAT_YUV420:
+	case DRM_FORMAT_YVU420:
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		offsets[0] = 0;
+		handles[1] = fb->handle;
+		pitches[1] = pitches[0] / 2;
+		offsets[1] = pitches[0] * height;
+		handles[2] = fb->handle;
+		pitches[2] = pitches[1];
+		offsets[2] = offsets[1] + pitches[1] * height / 2;
+		break;
+	case DRM_FORMAT_YVU422:
+	case DRM_FORMAT_YUV422:
+		offsets[0] = 0;
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		offsets[1] = pitches[0] * height;
+		handles[1] = fb->handle;
+		pitches[1] = pitches[0] / 2;
+		offsets[2] = offsets[1] + pitches[1] * height / 1;
+		handles[2] = fb->handle;
+		pitches[2] = pitches[1];
+		break;
+	case DRM_FORMAT_YVU444:
+	case DRM_FORMAT_YUV444:
+		offsets[0] = 0;
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		offsets[1] = pitches[0] * height;
+		handles[1] = fb->handle;
+		pitches[1] = pitches[0] / 1;
+		offsets[2] = offsets[1] + pitches[1] * height / 1;
+		handles[2] = fb->handle;
+		pitches[2] = pitches[1];
+		break;
+	default:
+		handles[0] = fb->handle;
+		pitches[0] = fb->pitch;
+		offsets[0] = 0;
+		break;
+	}
 
 	/* attempt drmModeAddFB2(), and fallback to drmModeAddFB() */
 	err = drmModeAddFB2(device->fd, width, height,
@@ -85,7 +171,7 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 	if (err) {
 		LOG("fallback to drmModeAddFB()\n");
 		err = drmModeAddFB(device->fd, width, height,
-				   args.bpp, args.bpp /*fb->format->depth, fb->format->bpp*/,
+				   args.bpp, args.bpp,
 				   fb->pitch, fb->handle, &fb->id);
 	}
 	if (err < 0) {
