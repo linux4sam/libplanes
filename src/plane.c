@@ -93,6 +93,13 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 			goto abort;
 		}
 	}
+	else
+	{
+		if (!kms_plane_supports_format(plane->plane, format)) {
+			LOG("error: format unsupported by plane: %s\n", kms_format_str(format));
+			goto abort;
+		}
+	}
 
 	LOG("plane 0x%x: allocating fb format %s with res %dx%d\n",
 	    plane->plane->id, kms_format_str(format), width, height);
