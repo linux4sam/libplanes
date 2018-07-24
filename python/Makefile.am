@@ -13,13 +13,13 @@ swig_v_GEN_0 = @echo "  SWIG    " $@;
 planes_wrap.c: $(SWIG_SRC)
 	$(SWIG_V_GEN)$(SWIG) -python -I$(top_srcdir)/include -o $@ $<
 
-PYTHON_BUILT = planes_wrap.c planes.py
-BUILT_SOURCES = $(PYTHON_BUILT)
+PYTHON_BUILT = planes_wrap.c $(top_builddir)/python/planes.py
 
+pythonext_LTLIBRARIES = _planes.la
 pythonextdir = $(PYTHON_SITE_PKG)/planes
 pythonext_SCRIPTS = __init__.py __init__.pyc planes.py planes.pyc
-pythonext_LTLIBRARIES = _planes.la
-_planes_la_SOURCES = planes_wrap.c $(SWIG_SRC)
+_planes_la_SOURCES =
+EXTRA__planes_la_SOURCES = planes_wrap.c $(SWIG_SRC)
 _planes_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
 _planes_la_LDFLAGS = -module
 _planes_la_LIBADD = $(top_builddir)/src/libplanes.la $(LIBDRM_LIBS) $(CAIRO_LIBS) $(CJSON_LIBS) $(LUA_LIBS)
@@ -35,6 +35,7 @@ planes.pyc: planes.py
 	$(PYTHONC_V_GEN)$(PYTHON) -c 'import py_compile, sys; py_compile.compile(sys.argv[1], sys.argv[2])' $< $@
 planes.py: planes_wrap.c
 
-EXTRA_DIST = $(PYTHON_BUILT)
-
 endif
+
+BUILT_SOURCES = $(PYTHON_BUILT)
+EXTRA_DIST =  __init__.py planes.i $(wildcard examples/*.py)

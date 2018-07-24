@@ -115,20 +115,27 @@ fi
 PKG_CHECK_MODULES(CAIRO, [cairo >= 1.14.6], [], [AC_MSG_ERROR([
      cairo is a hard dependency, but a sufficient version was not found.])])
 
-PKG_CHECK_MODULES(PYTHON, [python >= 2.7], [have_python=yes], [have_python=no])
-AM_CONDITIONAL(HAVE_PYTHON, [test "x$have_python" != "xno"])
+AC_ARG_ENABLE([python],
+              [AS_HELP_STRING([--disable-python],
+                              [Disable support for python bindings (default: auto)])],
+              [PYTHON=$enableval], [PYTHON=yes])
 
-if test "$prefix" = "NONE"; then
-   prefix=$ac_default_prefix
-fi
+if test "x$PYTHON" = xyes; then
+   PKG_CHECK_MODULES(PYTHON, [python >= 2.7], [have_python=yes], [have_python=no])
 
-if test "x$have_python" = "xyes"; then
-   AC_MSG_CHECKING([for Python site-packages path])
-   PYTHON_VERSION='2.7'
-   PYTHON_SITE_PKG=${prefix}/lib/python${PYTHON_VERSION}/site-packages
-   AC_MSG_RESULT([$PYTHON_SITE_PKG])
-   AC_SUBST([PYTHON_SITE_PKG])
+   if test "$prefix" = "NONE"; then
+      prefix=$ac_default_prefix
+   fi
+
+   if test "x$have_python" = "xyes"; then
+      AC_MSG_CHECKING([for Python site-packages path])
+      PYTHON_VERSION='2.7'
+      PYTHON_SITE_PKG=${prefix}/lib/python${PYTHON_VERSION}/site-packages
+      AC_MSG_RESULT([$PYTHON_SITE_PKG])
+      AC_SUBST([PYTHON_SITE_PKG])
+   fi
 fi
+AM_CONDITIONAL(HAVE_PYTHON, [test "x$have_python" = xyes])
 
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
