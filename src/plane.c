@@ -73,8 +73,26 @@ static uint32_t create_gem_name(struct kms_framebuffer* fb)
 struct plane_data* plane_create(struct kms_device* device, int type, int index,
 				int width, int height, uint32_t format)
 {
+	return plane_create_buffered(device, type, index, width, height, format, 1);
+}
+
+struct plane_data* plane_create_buffered(struct kms_device* device, int type,
+					 int index, int width, int height,
+					 uint32_t format, uint32_t buffer_count)
+{
+	uint32_t fb;
+
 	struct plane_data* plane = calloc(1, sizeof(struct plane_data));
 	if (!plane) {
+		LOG("error: failed to allocate plane\n");
+		goto abort;
+	}
+
+	plane->fbs = calloc(buffer_count, sizeof(struct kms_framebuffer*));
+	plane->bufs = calloc(buffer_count, sizeof(void*));
+	plane->gem_names = calloc(buffer_count, sizeof(uint32_t*));
+
+	if (!plane->fbs || !plane->bufs || !plane->gem_names) {
 		LOG("error: failed to allocate plane\n");
 		goto abort;
 	}
@@ -85,6 +103,9 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 		LOG("error: no plane found by type and index %d:%d\n", type, index);
 		goto abort;
 	}
+
+	plane->type = type;
+	plane->buffer_count = buffer_count;
 
 	if (!format) {
 		format = choose_format(plane->plane);
@@ -104,16 +125,21 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 	LOG("plane 0x%x: allocating fb format %s with res %dx%d\n",
 	    plane->plane->id, kms_format_str(format), width, height);
 
-	plane->fb = kms_framebuffer_create(device, width, height, format);
-	if (!plane->fb) {
-		LOG("error: failed to create fb\n");
-		goto abort;
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		plane->fbs[fb] = kms_framebuffer_create(device, width, height, format);
+		if (!plane->fbs[fb]) {
+			LOG("error: failed to create fb\n");
+			goto abort;
+		}
 	}
 
 	plane->index = index;
 	plane->alpha = 255;
 	plane->scale = 1.0;
-	plane->gem_name = create_gem_name(plane->fb);
+
+	for (fb = 0; fb < plane->buffer_count;fb++) {
+		plane->gem_names[fb] = create_gem_name(plane->fbs[fb]);
+	}
 
 	return plane;
 abort:
@@ -124,11 +150,15 @@ abort:
 
 static void plane_fb_free(struct plane_data* plane)
 {
+	uint32_t fb;
+
 	plane_fb_unmap(plane);
 
-	if (plane->fb) {
-		kms_framebuffer_free(plane->fb);
-		plane->fb = NULL;
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		if (plane->fbs[fb]) {
+			kms_framebuffer_free(plane->fbs[fb]);
+			plane->fbs[fb] = NULL;
+		}
 	}
 }
 
@@ -136,14 +166,22 @@ void plane_free(struct plane_data* plane)
 {
 	if (plane) {
 		plane_fb_free(plane);
+
+		if (plane->fbs)
+			free(plane->fbs);
+		if (plane->bufs)
+			free(plane->bufs);
+		if (plane->gem_names)
+			free(plane->gem_names);
 		free(plane);
 	}
 }
 
-
 int plane_fb_reallocate(struct plane_data* plane,
 			int width, int height, uint32_t format)
 {
+	uint32_t fb;
+
 	if (!format) {
 		format = choose_format(plane->plane);
 		if (!format) {
@@ -154,10 +192,12 @@ int plane_fb_reallocate(struct plane_data* plane,
 
 	plane_fb_free(plane);
 
-	plane->fb = kms_framebuffer_create(plane->plane->device, width, height, format);
-	if (!plane->fb) {
-		LOG("error: failed to create fb\n");
-		goto abort;
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		plane->fbs[fb] = kms_framebuffer_create(plane->plane->device, width, height, format);
+		if (!plane->fbs[fb]) {
+			LOG("error: failed to create fb\n");
+			goto abort;
+		}
 	}
 
 	return 0;
@@ -216,7 +256,7 @@ int plane_apply_rotate(struct plane_data* plane, uint32_t degrees)
 
 int plane_apply_alpha(struct plane_data* plane, uint32_t alpha)
 {
-	if (plane->plane->type != DRM_PLANE_TYPE_OVERLAY)
+	if (plane->plane->type == DRM_PLANE_TYPE_PRIMARY)
 		return -1;
 
 	if (set_plane_prop(plane->plane, "alpha", alpha)) {
@@ -269,6 +309,8 @@ void plane_set_scale(struct plane_data* plane, double scale)
 
 int plane_apply(struct plane_data* plane)
 {
+	struct kms_framebuffer* fb = plane->fbs[plane->front_buf];
+
 	if (plane->rotate_degrees != plane->rotate_degrees_applied)
 		plane_apply_rotate(plane, plane->rotate_degrees);
 
@@ -276,31 +318,31 @@ int plane_apply(struct plane_data* plane)
 		plane_apply_alpha(plane, plane->alpha);
 
 	if (plane->pan.width && plane->pan.height) {
-		return kms_plane_set_pan(plane->plane, plane->fb,
+		return kms_plane_set_pan(plane->plane, fb,
 					 plane->x, plane->y,
 					 plane->pan.x, plane->pan.y,
 					 plane->pan.width, plane->pan.height,
 					 plane->scale);
 	}
 
-	return kms_plane_set(plane->plane, plane->fb,
+	return kms_plane_set(plane->plane, fb,
 			     plane->x, plane->y,
 			     plane->scale);
 }
 
 uint32_t plane_width(struct plane_data* plane)
 {
-	return plane->fb->width;
+	return plane->fbs[0]->width;
 }
 
 uint32_t plane_height(struct plane_data* plane)
 {
-	return plane->fb->height;
+	return plane->fbs[0]->height;
 }
 
 uint32_t plane_format(struct plane_data* plane)
 {
-	return plane->fb->format;
+	return plane->fbs[0]->format;
 }
 
 int32_t plane_x(struct plane_data* plane)
@@ -357,14 +399,18 @@ void plane_set_pan_size(struct plane_data* plane, int width, int height)
 
 int plane_fb_map(struct plane_data* plane)
 {
-	if (!plane->buf) {
-		int err;
+	uint32_t fb;
 
-		err = kms_framebuffer_map(plane->fb, &plane->buf);
-		if (err < 0) {
-			LOG("error: kms_framebuffer_map() failed: %s\n",
-			    strerror(-err));
-			return -err;
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		if (!plane->bufs[fb]) {
+			int err;
+
+			err = kms_framebuffer_map(plane->fbs[fb], &plane->bufs[fb]);
+			if (err < 0) {
+				LOG("error: kms_framebuffer_map() failed: %s\n",
+				    strerror(-err));
+				return -err;
+			}
 		}
 	}
 
@@ -373,8 +419,29 @@ int plane_fb_map(struct plane_data* plane)
 
 void plane_fb_unmap(struct plane_data* plane)
 {
-	if (plane->buf) {
-		kms_framebuffer_unmap(plane->fb);
-		plane->buf = NULL;
+	uint32_t fb;
+
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		if (plane->bufs[fb]) {
+			kms_framebuffer_unmap(plane->fbs[fb]);
+			plane->bufs[fb] = NULL;
+		}
 	}
+}
+
+int plane_flip(struct plane_data* plane, uint32_t target)
+{
+	plane->front_buf = target;
+
+	if (plane->pan.width && plane->pan.height) {
+		return kms_plane_set_pan(plane->plane, plane->fbs[plane->front_buf],
+					 plane->x, plane->y,
+					 plane->pan.x, plane->pan.y,
+					 plane->pan.width, plane->pan.height,
+					 plane->scale);
+	}
+
+	return kms_plane_set(plane->plane, plane->fbs[plane->front_buf],
+			     plane->x, plane->y,
+			     plane->scale);
 }

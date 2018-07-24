@@ -52,14 +52,19 @@ struct kms_device;
  */
 struct plane_data
 {
+	/** The type of plane. */
+	int type;
 	/** Optional human name for the plane. */
 	char name[255];
 	/** Pointer to the underlying KMS plane object. */
 	struct kms_plane* plane;
 	/** Pointer to the underlying KMS framebuffer object. */
-	struct kms_framebuffer* fb;
+	struct kms_framebuffer** fbs;
 	/** The framebuffer.  Must call plane_map() to allocate this. */
-	void* buf;
+	void** bufs;
+	unsigned int front_buf;
+	/** The number of framebuffers. */
+	uint32_t buffer_count;
 	/** Plane type index, starting at zero. */
 	unsigned int index;
 	/** X coordinate of the plane. */
@@ -72,7 +77,7 @@ struct plane_data
 	/** Scale of the plane.  1.0 is no scale. */
 	double scale;
 	/** GEM name of the plane. */
-	uint32_t gem_name;
+	uint32_t* gem_names;
 	/** Alpha value of the plane.  0 to 255. */
 	uint32_t alpha;
 	uint32_t alpha_applied;
@@ -133,7 +138,8 @@ struct plane_data
  * Create a plane.
  *
  * @param device The already created KMS device.
- * @param type The type of plane: DRM_PLANE_TYPE_PRIMARY,DRM_PLANE_TYPE_OVERLAY
+ * @param type The type of plane: DRM_PLANE_TYPE_PRIMARY,DRM_PLANE_TYPE_OVERLAY,
+ *             DRM_PLANE_TYPE_CURSOR
  * @param index The index of the plane.
  * @param width The width in pixels of the plane.
  * @param height The height in pixels of the plane.
@@ -143,7 +149,26 @@ struct plane_data* plane_create(struct kms_device* device, int type, int index,
 				int width, int height, uint32_t format);
 
 /**
- * Free a plane allocated with plane_create().
+ * Create a plane with one of more framebuffers.
+ *
+ * When more than one framebuffer is allocated, plane_flip() can be used to
+ * iterate through them on the plane.
+ *
+ * @param device The already created KMS device.
+ * @param type The type of plane: DRM_PLANE_TYPE_PRIMARY,DRM_PLANE_TYPE_OVERLAY,
+ *             DRM_PLANE_TYPE_CURSOR
+ * @param index The index of the plane.
+ * @param width The width in pixels of the plane.
+ * @param height The height in pixels of the plane.
+ * @param format A DRM format, or zero to automatically choose.
+ * @param buffer_count The number of buffers to allocate.
+ */
+struct plane_data* plane_create_buffered(struct kms_device* device, int type,
+					 int index, int width, int height,
+					 uint32_t format, uint32_t buffer_count);
+
+/**
+ * Free a plane allocated with plane_create() or plane_create_buffered().
  *
  * @param plane The plane.
  */
@@ -305,7 +330,7 @@ void plane_set_pan_size(struct plane_data* plane, int width, int height);
  * Map the framebuffer.
  *
  * This is not done by default because the process that calls plane_create()
- * isn't necessarily the one using the framebuffer.
+ * or plane_create_buffered() isn't necessarily the one using the framebuffer.
  *
  * @param plane The plane.
  */
@@ -327,6 +352,22 @@ void plane_fb_unmap(struct plane_data* plane);
  */
 int plane_fb_reallocate(struct plane_data* plane,
 			int width, int height, uint32_t format);
+
+/**
+ * Perform a flip to the target buffer index as the front buffer.
+ *
+ * When you allocate a plane, you can specify how many buffers to create for the
+ * plane. This is usually going to be 1, 2, or 3.
+ *
+ * When you allocate more than 1 buffer, you can then start to refresh the
+ * screen timed to vertical syncs of the display. This will prevent side effects
+ * such as tearing. This is typically called double or tripple buffering based
+ * on 2 or 3 buffers, respectively.
+ *
+ * @param plane The plane.
+ * @param target The framebuffer index to switch to.
+ */
+int plane_flip(struct plane_data* plane, uint32_t target);
 
 #ifdef __cplusplus
 }

@@ -43,21 +43,21 @@ static void configure_plane(struct plane_data* plane, uint32_t colors[2],
 	int x;
 
 	if (mesh)
-		render_fb_mesh_pattern(plane->fb);
+		render_fb_mesh_pattern(plane->fbs[0]);
 	else if (vgradient)
-		render_fb_vgradient(plane->fb, colors[0], colors[1]);
+		render_fb_vgradient(plane->fbs[0], colors[0], colors[1]);
 	else
-		render_fb_checker_pattern(plane->fb, colors[0], colors[1]);
+		render_fb_checker_pattern(plane->fbs[0], colors[0], colors[1]);
 
 	if (filename)
-		render_fb_image(plane->fb, filename);
+		render_fb_image(plane->fbs[0], filename);
 
 	if (filename_raw)
-		render_fb_image_raw(plane->fb, filename_raw);
+		render_fb_image_raw(plane->fbs[0], filename_raw);
 
 	for (x = 0; x < 255;x++)
 		if (strlen(plane->text[x].str))
-			render_fb_text(plane->fb, plane->text[x].x, plane->text[x].y,
+			render_fb_text(plane->fbs[0], plane->text[x].x, plane->text[x].y,
 				       plane->text[x].str, plane->text[x].color,
 				       plane->text[x].size);
 }
@@ -753,9 +753,9 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		bool trigger = false;
 		bool move = false;
 
-		if (!planes[i] || !planes[i]->plane || !planes[i]->fb ||
-		   (planes[i]->plane->type != DRM_PLANE_TYPE_OVERLAY &&
-		    planes[i]->plane->type != DRM_PLANE_TYPE_CURSOR))
+		if (!planes[i] || !planes[i]->plane || !planes[i]->fbs[0] ||
+		    (planes[i]->plane->type != DRM_PLANE_TYPE_OVERLAY &&
+		     planes[i]->plane->type != DRM_PLANE_TYPE_CURSOR))
 			continue;
 
 		if (planes[i]->move_flags & MOVE_X_WARP) {
@@ -773,7 +773,7 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 			} else {
 				if ((planes[i]->x + plane_width(planes[i]) >
 				     device->screens[0]->width + plane_width(planes[i]))) {
-					planes[i]->x = planes[i]->fb->width * -1;
+					planes[i]->x = planes[i]->fbs[0]->width * -1;
 					trigger = true;
 				}
 			}
@@ -828,9 +828,9 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		}
 
 		if (planes[i]->move_flags & MOVE_Y_WARP) {
-			if ((planes[i]->y + planes[i]->fb->height >
-			     device->screens[0]->height + planes[i]->fb->height + planes[i]->fb->height)) {
-				planes[i]->y = planes[i]->fb->height * -1;
+			if ((planes[i]->y + planes[i]->fbs[0]->height >
+			     device->screens[0]->height + planes[i]->fbs[0]->height + planes[i]->fbs[0]->height)) {
+				planes[i]->y = planes[i]->fbs[0]->height * -1;
 				trigger = true;
 			}
 			planes[i]->y += planes[i]->move.yspeed;
@@ -838,7 +838,7 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		}
 
 		if (planes[i]->move_flags & MOVE_Y_BOUNCE) {
-			if (planes[i]->y + planes[i]->fb->height > device->screens[0]->height ||
+			if (planes[i]->y + planes[i]->fbs[0]->height > device->screens[0]->height ||
 			    planes[i]->y < 0) {
 				planes[i]->move.yspeed *= -1;
 				trigger = true;
@@ -859,7 +859,7 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 
 		if (planes[i]->move_flags & MOVE_Y_BOUNCE_OUT) {
 			if ((planes[i]->y+planes[i]->move.yspeed > (int)device->screens[0]->height) ||
-			    (planes[i]->y+planes[i]->move.yspeed < ((int)planes[i]->fb->height * -1))) {
+			    (planes[i]->y+planes[i]->move.yspeed < ((int)planes[i]->fbs[0]->height * -1))) {
 				planes[i]->move.yspeed *= -1;
 				trigger = true;
 			}
@@ -940,13 +940,13 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 				planes[i]->pan.y = planes[i]->sprite.y;
 
 				// support sheets that have frames on multiple rows
-				if (planes[i]->pan.x + planes[i]->sprite.width >= (int)planes[i]->fb->width) {
+				if (planes[i]->pan.x + planes[i]->sprite.width >= (int)planes[i]->fbs[0]->width) {
 					int x = planes[i]->sprite.x + (planes[i]->sprite.index * planes[i]->sprite.width);
 
-					planes[i]->pan.x = (x % planes[i]->fb->width);
-					planes[i]->pan.y = ((x / planes[i]->fb->width) * planes[i]->sprite.y) +
+					planes[i]->pan.x = (x % planes[i]->fbs[0]->width);
+					planes[i]->pan.y = ((x / planes[i]->fbs[0]->width) * planes[i]->sprite.y) +
 
-						(x / planes[i]->fb->width) * planes[i]->sprite.height;
+						(x / planes[i]->fbs[0]->width) * planes[i]->sprite.height;
 				}
 
 				planes[i]->pan.width = planes[i]->sprite.width;
@@ -957,10 +957,10 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 
 		if (trigger) {
 			if (planes[i]->transform_flags & TRANSFORM_FLIP_HORIZONTAL) {
-				flip_fb_horizontal(planes[i]->fb);
+				flip_fb_horizontal(planes[i]->fbs[0]);
 			}
 			if (planes[i]->transform_flags & TRANSFORM_FLIP_VERTICAL) {
-				flip_fb_vertical(planes[i]->fb);
+				flip_fb_vertical(planes[i]->fbs[0]);
 			}
 
 			if (planes[i]->transform_flags & TRANSFORM_ROTATE_CLOCKWISE) {
