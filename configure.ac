@@ -1,5 +1,5 @@
 AC_PREREQ([2.63])
-AC_INIT([planes],[0.0.1])
+AC_INIT([libplanes],[0.0.1])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([Makefile.am])
