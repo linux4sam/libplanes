@@ -145,6 +145,49 @@ struct
 	{"rotate-cclockwise", TRANSFORM_ROTATE_CCLOCKWISE},
 };
 
+static int plane_string_to_type(const char* str)
+{
+	if (!strcmp(str,"primary"))
+		return DRM_PLANE_TYPE_PRIMARY;
+	else if (!strcmp(str,"overlay"))
+		return DRM_PLANE_TYPE_OVERLAY;
+	else if (!strcmp(str,"cursor"))
+		return DRM_PLANE_TYPE_CURSOR;
+
+	return -1;
+}
+
+static int check_plane_exist(lua_State* state)
+{
+	unsigned int i;
+	struct kms_device* device;
+	int type = plane_string_to_type(lua_tolstring(state, 1, NULL));
+	int index = lua_tonumber(state, 2);
+	bool enable_flag = false;
+
+	lua_getglobal(state, "device");
+	device = lua_touserdata(state, -1);
+
+	for (i = 0; i < device->num_planes; i++) {
+		if ((int)device->planes[i]->type == type) {
+			if (index == 0) {
+				enable_flag = true;
+				goto enable;
+			}
+
+			index--;
+		}
+	}
+
+	lua_pushnumber(state, 0);
+
+enable:
+	if (enable_flag)
+	lua_pushnumber(state, 1);
+
+	return 1;
+}
+
 static int logical_to_physical_width(lua_State* state)
 {
 	double width = lua_tonumber(state, 1);
@@ -173,7 +216,11 @@ static double lua_evaluate(const char* expr, struct kms_device* device)
 	char *msg = NULL;
 	double y = 0.;
 
-	if (!script_init()) {
+	lua_State* state = luaL_newstate();
+	lua_pushlightuserdata(state, device);
+	lua_setglobal(state, "device");
+
+	if (!script_init(state)) {
 		LOG("can't init lua\n");
 		return y;
 	}
@@ -183,6 +230,7 @@ static double lua_evaluate(const char* expr, struct kms_device* device)
 		goto error;
 	}
 
+	script_setfunc("checkplane", check_plane_exist);
 	script_setfunc("physicalw", logical_to_physical_width);
 	script_setfunc("physicalh", logical_to_physical_height);
 	script_setvar("SCREEN_WIDTH", device->screens[0]->width);
@@ -306,6 +354,10 @@ static struct plane_data* parse_plane(const char* config_file,
 
 	if (!cJSON_IsString(type)) {
 		LOG("error: invalid plane type\n");
+		return NULL;
+	}
+
+	if (!eval_expr(enabled, device, 1)) {
 		return NULL;
 	}
 
@@ -541,6 +593,96 @@ static struct plane_data* parse_plane(const char* config_file,
 		if (filename_raw)
 			free((char*)filename_raw);
 	}
+	else if (!strcmp("cursor", type->valuestring)) {
+		const char* filename = 0;
+		const char* filename_raw = 0;
+		uint32_t colors[2] = {0};
+		uint32_t f = 0;
+		int j;
+		unsigned int k;
+		int idx = 0;
+		bool vgradient = false;
+		int p = 0;
+
+		if (cJSON_IsString(format)) {
+			f = kms_format_val(format->valuestring);
+			if (!f)
+				LOG("error: format unknown\n");
+		}
+
+		if (cJSON_IsNumber(index))
+			idx = index->valueint;
+
+		data = plane_create(device, DRM_PLANE_TYPE_CURSOR, idx,
+				    eval_expr(width, device,
+					      device->screens[0]->width),
+				    eval_expr(height, device,
+					      device->screens[0]->height),
+				    f);
+
+		if (!data) {
+			LOG("error: failed to create plane\n");
+			return NULL;
+		}
+
+		if (cJSON_IsString(name))
+			strncpy(data->name, name->valuestring, sizeof(data->name)-1);
+
+		plane_set_pos(data, eval_expr(x, device, 0),
+			      eval_expr(y, device, 0));
+
+		data->move.xspeed = eval_expr(move_xspeed, device, 0);
+		data->move.yspeed = eval_expr(move_yspeed, device, 0);
+		data->pan.yspeed = eval_expr(pan_yspeed, device, 0);
+		data->pan.xspeed = eval_expr(pan_xspeed, device, 0);
+		data->move.xmin = eval_expr(move_xmin, device, 0);
+		data->move.xmax = eval_expr(move_xmax,
+					    device,
+					    device->screens[0]->width);
+		data->move.ymin = eval_expr(move_ymin, device, 0);
+		data->move.ymax = eval_expr(move_ymax,
+					    device,
+					    device->screens[0]->height);
+
+		if (cJSON_IsString(image))
+			filename = reldir(config_file, image->valuestring);
+		if (cJSON_IsString(image_raw))
+			filename_raw = reldir(config_file, image_raw->valuestring);
+		if (cJSON_IsString(pattern1))
+			colors[0] = strtoul(pattern1->valuestring, NULL, 0);
+		if (cJSON_IsString(pattern2))
+			colors[1] = strtoul(pattern2->valuestring, NULL, 0);
+		else
+			colors[1] = colors[0];
+		if (cJSON_IsString(vgradient1) && cJSON_IsString(vgradient2)) {
+			colors[0] = strtoul(vgradient1->valuestring, NULL, 0);
+			colors[1] = strtoul(vgradient2->valuestring, NULL, 0);
+			vgradient = true;
+		}
+
+		if (cJSON_IsTrue(patch))
+			p = 1;
+
+		plane_set_alpha(data, eval_expr(alpha, device, 255));
+
+		for (j = 0; j < cJSON_GetArraySize(move_type);j++) {
+			cJSON* mt = cJSON_GetArrayItem(move_type, j);
+
+			if (cJSON_IsString(mt)) {
+				for (k = 0; k < ARRAY_SIZE(move_map); k++) {
+					if (!strcmp(move_map[k].s, mt->valuestring))
+						data->move_flags |= move_map[k].v;
+				}
+			}
+		}
+
+		configure_plane(data, colors, vgradient, p, filename, filename_raw);
+
+		if (filename)
+			free((char*)filename);
+		if (filename_raw)
+			free((char*)filename_raw);
+	}
 	else {
 		LOG("error: unknown plane type\n");
 	}
@@ -608,7 +750,8 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		bool move = false;
 
 		if (!planes[i] || !planes[i]->plane || !planes[i]->fb ||
-		    planes[i]->plane->type != DRM_PLANE_TYPE_OVERLAY)
+		   (planes[i]->plane->type != DRM_PLANE_TYPE_OVERLAY &&
+		    planes[i]->plane->type != DRM_PLANE_TYPE_CURSOR))
 			continue;
 
 		if (planes[i]->move_flags & MOVE_X_WARP) {

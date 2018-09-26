@@ -21,6 +21,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+from mpio import *
 import planes
 import os
 import random
@@ -37,7 +38,7 @@ def phh(height):
 fd = os.open("/dev/dri/card0", os.O_RDWR)
 device = planes.kms_device_open(fd);
 
-plane = planes.plane_create(device, 0, 2,
+plane = planes.plane_create(device, 0, 0 if cpu() == 'at91sam9x5' else 2,
                             device.get_screens(0).width,
                             device.get_screens(0).height,
                             planes.kms_format_val("DRM_FORMAT_XRGB8888"))

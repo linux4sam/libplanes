@@ -31,12 +31,15 @@
 
 static lua_State* state = NULL;
 
-int script_init(void)
+int script_init(lua_State* newstate)
 {
 	if (state)
 		return 1;
 
-	state = luaL_newstate();
+	if (newstate)
+		state = newstate;
+	else
+		state = luaL_newstate();
 	if (state)
 		luaL_openlibs(state);
 	return !!state;

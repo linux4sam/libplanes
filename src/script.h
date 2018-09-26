@@ -27,7 +27,7 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-int script_init(void);
+int script_init(lua_State* newstate);
 int script_load(const char *expr, char **pmsg);
 double script_eval(int cookie, char **pmsg);
 void script_unref(int cookie);
