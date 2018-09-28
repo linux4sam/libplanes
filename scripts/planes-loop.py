@@ -44,7 +44,7 @@ signal.signal(signal.SIGINT, handler)
 thread = Thread(target=run)
 thread.start()
 
-device = Input('/dev/input/event0')
+device = Input('/dev/input/keyboard0')
 while True:
     try:
         (tv_sec, tv_usec, evtype, code, value) = device.read()
