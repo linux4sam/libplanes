@@ -589,10 +589,20 @@ static int mssleep(uint32_t ms)
 	return nanosleep(&req , &rem);
 }
 
+#define NSEC_PER_SEC 1000000000L
+#define timerdiff(a,b) (((a)->tv_sec - (b)->tv_sec) * NSEC_PER_SEC + \
+			(((a)->tv_nsec - (b)->tv_nsec)))
+
 void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		     uint32_t num_planes, uint32_t framedelay)
 {
 	unsigned int i;
+	struct timespec start;
+	struct timespec now;
+	unsigned long delta;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
 	for (i = 0; i < num_planes;i++) {
 		bool trigger = false;
 		bool move = false;
@@ -830,7 +840,12 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		}
 	}
 
-	mssleep(framedelay);
+	// only delay the delta if all the work we did took lss than the framedelay
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	delta = timerdiff(&now, &start) / 1000000;
+
+	if (delta < framedelay)
+		mssleep(framedelay - delta);
 }
 
 void engine_run(struct kms_device* device, struct plane_data** planes,
