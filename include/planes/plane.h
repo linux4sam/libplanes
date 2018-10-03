@@ -68,12 +68,14 @@ struct plane_data
 	int y;
 	/** Rotation degrees of the plane. */
 	int rotate_degrees;
+	int rotate_degrees_applied;
 	/** Scale of the plane.  1.0 is no scale. */
 	double scale;
 	/** GEM name of the plane. */
 	uint32_t gem_name;
 	/** Alpha value of the plane.  0 to 255. */
 	uint32_t alpha;
+	uint32_t alpha_applied;
 
 	int move_flags;
 	int transform_flags;

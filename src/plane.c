@@ -209,6 +209,7 @@ int plane_apply_rotate(struct plane_data* plane, uint32_t degrees)
 	}
 
 	plane->rotate_degrees = degrees;
+	plane->rotate_degrees_applied = degrees;
 
 	return 0;
 }
@@ -224,6 +225,7 @@ int plane_apply_alpha(struct plane_data* plane, uint32_t alpha)
 	}
 
 	plane->alpha = alpha;
+	plane->alpha_applied = alpha;
 
 	return 0;
 }
@@ -267,8 +269,11 @@ void plane_set_scale(struct plane_data* plane, double scale)
 
 int plane_apply(struct plane_data* plane)
 {
-	plane_apply_rotate(plane, plane->rotate_degrees);
-	plane_apply_alpha(plane, plane->alpha);
+	if (plane->rotate_degrees != plane->rotate_degrees_applied)
+		plane_apply_rotate(plane, plane->rotate_degrees);
+
+	if (plane->alpha != plane->alpha_applied)
+		plane_apply_alpha(plane, plane->alpha);
 
 	if (plane->pan.width && plane->pan.height) {
 		return kms_plane_set_pan(plane->plane, plane->fb,
