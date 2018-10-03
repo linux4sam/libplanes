@@ -8,3 +8,5 @@ Description: Microchip library for working with hardware LCD planes
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lplanes
 Cflags: -I${includedir} -I${includedir}/planes
+Requires: @AX_PACKAGE_REQUIRES@
+Requires.private: @AX_PACKAGE_REQUIRES_PRIVATE@

@@ -96,23 +96,23 @@ AC_TYPE_INT32_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
-PKG_CHECK_MODULES(LIBDRM, [libdrm >= 2.4.0], [], [AC_MSG_ERROR([
+AX_PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.4.0], [], [], [AC_MSG_ERROR([
      libdrm is a hard dependency, but a sufficient version was not found.])])
 
-PKG_CHECK_MODULES(CJSON, [libcjson >= 1.6.0], [], [AC_MSG_ERROR([
+AX_PKG_CHECK_MODULES([CJSON], [], [libcjson >= 1.6.0], [], [AC_MSG_ERROR([
      cJSON is a hard dependency, but a sufficient version was not found.])])
 
-PKG_CHECK_MODULES(LUA, [lua >= 5.3.1], [], [AC_MSG_ERROR([
+AX_PKG_CHECK_MODULES([LUA], [], [lua >= 5.3.1], [], [AC_MSG_ERROR([
      liblua is a hard dependency, but a sufficient version was not found.])])
 
-PKG_CHECK_MODULES(DIRECTFB, [directfb >= 1.7.0], [have_directfb=yes], [have_directfb=no])
+PKG_CHECK_MODULES([DIRECTFB], [directfb >= 1.7.0], [have_directfb=yes], [have_directfb=no])
 AM_CONDITIONAL(HAVE_DIRECTFB, [test "x$have_directfb" != "xno"])
 
 if test "x$have_directfb" = "xyes"; then
    AC_C_INLINE
 fi
 
-PKG_CHECK_MODULES(CAIRO, [cairo >= 1.14.6], [], [AC_MSG_ERROR([
+AX_PKG_CHECK_MODULES([CAIRO], [cairo >= 1.14.6], [], [], [AC_MSG_ERROR([
      cairo is a hard dependency, but a sufficient version was not found.])])
 
 AC_ARG_ENABLE([python],
