@@ -91,7 +91,10 @@ double script_eval(int cookie, char **pmsg)
 	}
 	if (pmsg)
 		*pmsg = NULL;
-	ret = lua_tonumber(state, -1);
+	if (lua_isboolean(state, -1))
+		ret = lua_toboolean(state, -1);
+	else
+		ret = lua_tonumber(state, -1);
 	lua_pop(state, 1);
 	return ret;
 }

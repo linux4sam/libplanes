@@ -163,7 +163,7 @@ static int check_plane_exist(lua_State* state)
 	struct kms_device* device;
 	int type = plane_string_to_type(lua_tolstring(state, 1, NULL));
 	int index = lua_tonumber(state, 2);
-	bool enable_flag = false;
+	int enable_flag = 0;
 
 	lua_getglobal(state, "device");
 	device = lua_touserdata(state, -1);
@@ -171,19 +171,15 @@ static int check_plane_exist(lua_State* state)
 	for (i = 0; i < device->num_planes; i++) {
 		if ((int)device->planes[i]->type == type) {
 			if (index == 0) {
-				enable_flag = true;
-				goto enable;
+				enable_flag = 1;
+				break;
 			}
 
 			index--;
 		}
 	}
 
-	lua_pushnumber(state, 0);
-
-enable:
-	if (enable_flag)
-	lua_pushnumber(state, 1);
+	lua_pushboolean(state, enable_flag);
 
 	return 1;
 }
@@ -357,9 +353,8 @@ static struct plane_data* parse_plane(const char* config_file,
 		return NULL;
 	}
 
-	if (!eval_expr(enabled, device, 1)) {
+	if (!eval_expr(enabled, device, 1))
 		return NULL;
-	}
 
 	if (!strcmp("primary", type->valuestring)) {
 		const char* filename = 0;
@@ -674,6 +669,15 @@ static struct plane_data* parse_plane(const char* config_file,
 						data->move_flags |= move_map[k].v;
 				}
 			}
+		}
+
+		if (cJSON_IsArray(text)) {
+			for (j = 0; j < cJSON_GetArraySize(text);j++) {
+				cJSON* t = cJSON_GetArrayItem(text, j);
+				add_text_entry(data, t, device);
+			}
+		} else if (cJSON_IsObject(text)) {
+			add_text_entry(data, text, device);
 		}
 
 		configure_plane(data, colors, vgradient, p, filename, filename_raw);
