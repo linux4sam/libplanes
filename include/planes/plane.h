@@ -327,6 +327,16 @@ void plane_set_pan_pos(struct plane_data* plane, int x, int y);
 void plane_set_pan_size(struct plane_data* plane, int width, int height);
 
 /**
+ * Hide/disable a plane.
+ *
+ * This does not delete any informaiton about the plane.  It only disables the
+ * plane.  To re-enable the plane call plane_apply() again.
+ *
+ * @param plane The plane.
+ */
+void plane_hide(struct plane_data* plane);
+
+/**
  * Map the framebuffer.
  *
  * This is not done by default because the process that calls plane_create()

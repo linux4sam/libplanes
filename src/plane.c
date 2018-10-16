@@ -397,6 +397,11 @@ void plane_set_pan_size(struct plane_data* plane, int width, int height)
 	plane->pan.height = height;
 }
 
+void plane_hide(struct plane_data* plane)
+{
+	kms_plane_remove(plane->plane);
+}
+
 int plane_fb_map(struct plane_data* plane)
 {
 	uint32_t fb;

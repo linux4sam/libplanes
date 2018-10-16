@@ -66,6 +66,7 @@ int kms_screen_set(struct kms_screen *screen, struct kms_crtc *crtc,
 
 struct kms_plane *kms_plane_create(struct kms_device *device, uint32_t id);
 void kms_plane_free(struct kms_plane *plane);
+int kms_plane_remove(struct kms_plane *plane);
 
 int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
 		  int x, int y, double scale);

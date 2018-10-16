@@ -110,6 +110,23 @@ struct kms_plane *kms_plane_create(struct kms_device *device, uint32_t id)
 	return plane;
 }
 
+int kms_plane_remove(struct kms_plane *plane)
+{
+	struct kms_device *device = plane->device;
+	int err;
+
+	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id,
+			      0, 0,
+			      0, 0,
+			      0, 0,
+			      0, 0,
+			      0, 0);
+	if (err < 0)
+		return -errno;
+
+	return 0;
+}
+
 void kms_plane_free(struct kms_plane *plane)
 {
 	free(plane->formats);
