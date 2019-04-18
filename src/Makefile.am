@@ -2,6 +2,7 @@ AM_CFLAGS = $(WARN_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libplanes.la
 libplanes_la_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CJSON_CFLAGS) $(CAIRO_CFLAGS) $(LUA_CFLAGS)
+libplanes_la_LIBADD = $(CJSON_LIBS) $(LUA_LIBS)
 libplanes_la_SOURCES = kms-crtc.c \
 kms-device.c \
 kms-framebuffer.c \
