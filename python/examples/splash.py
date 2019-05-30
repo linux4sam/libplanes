@@ -42,7 +42,7 @@ plane = planes.plane_create(device, 0, 0 if cpu() == 'at91sam9x5' else 2,
                             device.get_screens(0).width,
                             device.get_screens(0).height,
                             planes.kms_format_val("DRM_FORMAT_XRGB8888"))
-planes.render_fb_image(plane.fb,
+planes.render_fb_image(plane.get_fb(0),
                        os.path.join(os.path.dirname(__file__), 'background5.png'))
 
 msgs = [
@@ -57,7 +57,7 @@ msgs = [
 ]
 
 srandom = random.SystemRandom()
-planes.render_fb_text(plane.fb, int(phw(50)), int(phh(220)),
+planes.render_fb_text(plane.get_fb(0), int(phw(50)), int(phh(220)),
                       srandom.choice(msgs), 0xffffffff, phw(30))
 
 x = 1.0

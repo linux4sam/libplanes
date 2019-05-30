@@ -26,3 +26,17 @@ typedef unsigned int uint32_t;
 			return _planes._kms_device_get_screen(self, index)
 	%}
 }
+
+%inline %{
+	struct kms_framebuffer _plane_data_get_fb(struct plane_data *plane, int index)
+	{
+		return *(plane->fbs[index]);
+	}
+%}
+
+%extend plane_data {
+	%pythoncode %{
+		def get_fb(self, index):
+			return _planes._plane_data_get_fb(self, index)
+	%}
+}

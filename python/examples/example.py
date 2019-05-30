@@ -42,13 +42,13 @@ bs = 16
 overlays = [planes.plane_create(device, 0, i, bs*3, bs*3, 0) for i in xrange(3)]
 
 # render the primary plane
-planes.render_fb_checker_pattern(primary.fb, 0x000000ff, 0xffffffff)
+planes.render_fb_checker_pattern(primary.get_fb(0), 0x000000ff, 0xffffffff)
 planes.plane_apply(primary)
 
 # position each of the overlays and render a color
 colors = [0xff0000aa, 0x00ff00aa, 0x0000ffaa]
 for i, overlay in enumerate(overlays):
-    planes.render_fb_checker_pattern(overlay.fb, colors[i], colors[i])
+    planes.render_fb_checker_pattern(overlay.get_fb(0), colors[i], colors[i])
     planes.plane_set_pos(overlay, bs*3*i, bs*3*i)
     planes.plane_apply(overlay)
 
