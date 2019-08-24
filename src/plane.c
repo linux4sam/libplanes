@@ -450,3 +450,17 @@ int plane_flip(struct plane_data* plane, uint32_t target)
 			     plane->x, plane->y,
 			     plane->scale);
 }
+
+int plane_flip_async(struct plane_data* plane, uint32_t target)
+{
+	struct kms_device *device = plane->plane->device;
+
+	plane->front_buf = target;
+
+	if (drmModePageFlip(device->fd, plane->plane->crtc->id,
+			       plane->fbs[plane->front_buf]->id,
+			    DRM_MODE_PAGE_FLIP_ASYNC, NULL) < 0)
+		return -1;
+
+	return 0;
+}

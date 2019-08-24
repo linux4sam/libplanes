@@ -379,6 +379,11 @@ int plane_fb_reallocate(struct plane_data* plane,
  */
 int plane_flip(struct plane_data* plane, uint32_t target);
 
+/**
+ * Same as plane_flip(), but it does it immediately irrelevant of vsync.
+ */
+int plane_flip_async(struct plane_data* plane, uint32_t target);
+
 #ifdef __cplusplus
 }
 #endif
