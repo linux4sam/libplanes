@@ -75,7 +75,8 @@ struct plane_data
 	int rotate_degrees;
 	int rotate_degrees_applied;
 	/** Scale of the plane.  1.0 is no scale. */
-	double scale;
+	double scale_x;
+	double scale_y;
 	/** GEM name of the plane. */
 	uint32_t* gem_names;
 	/** Alpha value of the plane.  0 to 255. */
@@ -210,6 +211,16 @@ void plane_set_pos(struct plane_data* plane, int x, int y);
  * @see plane_apply()
  */
 void plane_set_scale(struct plane_data* plane, double scale);
+
+/**
+ * Set the plane x and y scale.
+ * You must call plane_apply() to commit the change.
+ *
+ * @param scale_x Horizontal scale of the plane, where 1.0 is no scale.
+ * @param scale_y Vertical scale of the plane, where 1.0 is no scale.
+ * @see plane_apply()
+ */
+void plane_set_scale_independent(struct plane_data* plane, double scale_x, double scale_y);
 
 /**
  * Apply the current properties of the plane.

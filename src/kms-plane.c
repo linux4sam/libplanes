@@ -134,13 +134,13 @@ void kms_plane_free(struct kms_plane *plane)
 }
 
 int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
-		  int x, int y, double scale)
+		  int x, int y, double scale_x, double scale_y)
 {
 	struct kms_device *device = plane->device;
 	int err;
 
-	int w = fb->width * scale;
-	int h = fb->height * scale;
+	int w = fb->width * scale_x;
+	int h = fb->height * scale_y;
 
 	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id, fb->id,
 			      0, x, y, w, h, 0 << 16,
@@ -153,13 +153,13 @@ int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
 
 int kms_plane_set_pan(struct kms_plane *plane, struct kms_framebuffer *fb,
 		      int x, int y, uint32_t px, uint32_t py, uint32_t pw,
-		      uint32_t ph, double scale)
+		      uint32_t ph, double scale_x, double scale_y)
 {
 	struct kms_device *device = plane->device;
 	int err;
 
-	int w = pw * scale;
-	int h = ph * scale;
+	int w = pw * scale_x;
+	int h = ph * scale_y;
 
 	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id, fb->id,
 			      0,
