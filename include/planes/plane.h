@@ -207,7 +207,8 @@ void plane_set_pos(struct plane_data* plane, int x, int y);
  * Set the plane scale.
  * You must call plane_apply() to commit the change.
  *
- * @param scale Scale of the plane, where 1.0 is no scale.
+ * @param scale_x Horizontal scale of the plane, where 1.0 is no scale.
+ * @param scale_y Vertical scale of the plane, where 1.0 is no scale.
  * @see plane_apply()
  */
 void plane_set_scale(struct plane_data* plane, double scale_x, double scale_y);
