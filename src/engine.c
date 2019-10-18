@@ -482,7 +482,7 @@ static struct plane_data* parse_plane(const char* config_file,
 					    device,
 					    device->screens[0]->height);
 		if (cJSON_IsNumber(scale))
-			plane_set_scale(data, scale->valuedouble);
+			plane_set_scale(data, scale->valuedouble, scale->valuedouble);
 
 		if (cJSON_IsNumber(rotate))
 			plane_set_rotate(data, rotate->valueint);
@@ -918,12 +918,15 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 		}
 
 		if (planes[i]->move_flags & MOVE_SCALER) {
-			if (planes[i]->scale >= planes[i]->scaler.max ||
-			    planes[i]->scale <= planes[i]->scaler.min) {
-				planes[i]->scaler.speed *= -1.0;
+			if (planes[i]->scale_x >= planes[i]->scaler.max ||
+			    planes[i]->scale_y >= planes[i]->scaler.max ||
+			    planes[i]->scale_x <= planes[i]->scaler.min ||
+			    planes[i]->scale_y <= planes[i]->scaler.min) {
+			    planes[i]->scaler.speed *= -1.0;
 			}
 
-			planes[i]->scale += planes[i]->scaler.speed;
+			planes[i]->scale_x += planes[i]->scaler.speed;
+			planes[i]->scale_y += planes[i]->scaler.speed;
 			move = true;
 		}
 

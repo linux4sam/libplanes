@@ -135,7 +135,8 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 
 	plane->index = index;
 	plane->alpha = 255;
-	plane->scale = 1.0;
+	plane->scale_x = 1.0;
+	plane->scale_y = 1.0;
 
 	for (fb = 0; fb < plane->buffer_count;fb++) {
 		plane->gem_names[fb] = create_gem_name(plane->fbs[fb]);
@@ -302,9 +303,10 @@ void plane_set_pos(struct plane_data* plane, int x, int y)
 	plane->y = y;
 }
 
-void plane_set_scale(struct plane_data* plane, double scale)
+void plane_set_scale(struct plane_data* plane, double scale_x, double scale_y)
 {
-	plane->scale = scale;
+	plane->scale_x = scale_x;
+	plane->scale_y = scale_y;
 }
 
 int plane_apply(struct plane_data* plane)
@@ -322,12 +324,12 @@ int plane_apply(struct plane_data* plane)
 					 plane->x, plane->y,
 					 plane->pan.x, plane->pan.y,
 					 plane->pan.width, plane->pan.height,
-					 plane->scale);
+					 plane->scale_x, plane->scale_y);
 	}
 
 	return kms_plane_set(plane->plane, fb,
 			     plane->x, plane->y,
-			     plane->scale);
+			     plane->scale_x, plane->scale_y);
 }
 
 uint32_t plane_width(struct plane_data* plane)
@@ -443,12 +445,12 @@ int plane_flip(struct plane_data* plane, uint32_t target)
 					 plane->x, plane->y,
 					 plane->pan.x, plane->pan.y,
 					 plane->pan.width, plane->pan.height,
-					 plane->scale);
+					 plane->scale_x, plane->scale_y);
 	}
 
 	return kms_plane_set(plane->plane, plane->fbs[plane->front_buf],
 			     plane->x, plane->y,
-			     plane->scale);
+			     plane->scale_x, plane->scale_y);
 }
 
 int plane_flip_async(struct plane_data* plane, uint32_t target)

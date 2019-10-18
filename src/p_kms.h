@@ -69,9 +69,9 @@ void kms_plane_free(struct kms_plane *plane);
 int kms_plane_remove(struct kms_plane *plane);
 
 int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
-		  int x, int y, double scale);
+		  int x, int y, double scale_x, double scale_y);
 int kms_plane_set_pan(struct kms_plane *plane, struct kms_framebuffer *fb,
-		      int x, int y, uint32_t px, uint32_t py, uint32_t pw, uint32_t ph, double scale);
+		      int x, int y, uint32_t px, uint32_t py, uint32_t pw, uint32_t ph, double scale_x, double scale_y);
 bool kms_plane_supports_format(struct kms_plane *plane, uint32_t format);
 
 void kms_device_probe_framebuffers(struct kms_device *device);
