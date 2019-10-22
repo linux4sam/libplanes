@@ -223,6 +223,18 @@ void plane_set_scale(struct plane_data* plane, double scale);
 void plane_set_scale_independent(struct plane_data* plane, double scale_x, double scale_y);
 
 /**
+ * Get the plane horizontal scale value.
+ * @param plane The plane.
+ */
+double plane_scale_x(struct plane_data* plane);
+
+/**
+ * Get the plane vertical scale value.
+ * @param plane The plane.
+ */
+double plane_scale_y(struct plane_data* plane);
+
+/**
  * Apply the current properties of the plane.
  *
  * This must be called after any of the plane_set_* calls to actually apply the

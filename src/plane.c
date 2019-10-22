@@ -314,6 +314,16 @@ void plane_set_scale_independent(struct plane_data* plane, double scale_x, doubl
 	plane->scale_y = scale_y;
 }
 
+double plane_scale_x(struct plane_data* plane)
+{
+	return plane->scale_x;
+}
+
+double plane_scale_y(struct plane_data* plane)
+{
+	return plane->scale_y;
+}
+
 int plane_apply(struct plane_data* plane)
 {
 	struct kms_framebuffer* fb = plane->fbs[plane->front_buf];
