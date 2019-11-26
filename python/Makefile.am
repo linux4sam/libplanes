@@ -4,7 +4,7 @@ if HAVE_PYTHON
 SWIG_SRC = planes.i
 
 SWIG=swig
-PYTHON=python
+PYTHON=python3
 
 SWIG_V_GEN = $(swig_v_GEN_$(V))
 swig_v_GEN_ = $(swig_v_GEN_$(AM_DEFAULT_VERBOSITY))
