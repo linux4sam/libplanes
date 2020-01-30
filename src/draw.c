@@ -25,6 +25,7 @@
 #include "planes/draw.h"
 #include "planes/engine.h"
 
+#include <cairo.h>
 #include <drm_fourcc.h>
 #include <errno.h>
 #include <stdio.h>

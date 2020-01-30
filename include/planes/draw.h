@@ -33,7 +33,6 @@
 
 #include "planes/kms.h"
 
-#include <cairo.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
