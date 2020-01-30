@@ -112,7 +112,7 @@ if test "x$have_directfb" = "xyes"; then
    AC_C_INLINE
 fi
 
-AX_PKG_CHECK_MODULES([CAIRO], [cairo >= 1.14.6], [], [], [AC_MSG_ERROR([
+AX_PKG_CHECK_MODULES([CAIRO], [], [cairo >= 1.14.6], [], [AC_MSG_ERROR([
      cairo is a hard dependency, but a sufficient version was not found.])])
 
 AC_ARG_ENABLE([python],
