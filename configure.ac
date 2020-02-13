@@ -137,6 +137,11 @@ if test "x$PYTHON" = xyes; then
 fi
 AM_CONDITIONAL(HAVE_PYTHON, [test "x$have_python" = xyes])
 
+AC_ARG_ENABLE([examples],
+  [AS_HELP_STRING([--enable-examples], [build examples [default=yes]])],
+  [enable_examples=$enableval], [enable_examples=yes])
+AM_CONDITIONAL([ENABLE_EXAMPLES], [test "x${enable_examples}" = xyes])
+
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_FUNC_ALLOCA

@@ -1,17 +1,23 @@
 AM_CFLAGS = $(WARN_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include
 
-bin_PROGRAMS = planes render grab
+bin_PROGRAMS = planes
+
+if ENABLE_EXAMPLES
+bin_PROGRAMS += render grab
 
 if HAVE_DIRECTFB
 bin_PROGRAMS += dfblayers
+endif
 endif
 
 planes_SOURCES = planes.c
 planes_CFLAGS = $(AM_CFLAGS) $(LIBDRM_CFLAGS) $(CAIRO_CFLAGS)
 planes_LDADD = $(top_builddir)/src/libplanes.la $(LIBDRM_LIBS) $(CAIRO_LIBS)
 planesdir = $(prefix)/share/planes
+if ENABLE_EXAMPLES
 planes_DATA = $(wildcard $(top_srcdir)/configs/*.png) \
 	$(wildcard $(top_srcdir)/configs/*.config)
+endif
 planes_LDFLAGS = $(AM_LDFLAGS)
 
 render_SOURCES = render.c
