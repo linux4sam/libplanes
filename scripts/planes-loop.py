@@ -15,10 +15,10 @@ def run():
     global child_pid
     global abort
     if cpu() == 'at91sam9x5':
-	configs = ["default.config", "alpha.config", "sprite.config",
-		   "alpha2.config", "paper.config", "rotate.config"]
+        configs = ["default.config", "alpha.config", "sprite.config",
+                   "alpha2.config", "paper.config", "rotate.config"]
     else:
-	configs = glob.glob("*.config")
+        configs = glob.glob("*.config")
     while not abort:
         for config in configs:
             proc = Popen(["planes", "-f", "500", "-c", config], close_fds=True)
