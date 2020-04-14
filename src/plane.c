@@ -131,6 +131,10 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 			LOG("error: failed to create fb\n");
 			goto abort;
 		}
+		if (kms_screen_set(device->screens[0], device->crtcs[0], plane->fbs[fb])) {
+			LOG("error: failed to set CRTC\n");
+			goto abort;
+		}
 	}
 
 	plane->index = index;
