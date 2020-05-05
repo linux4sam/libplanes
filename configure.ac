@@ -19,10 +19,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
-if test "x$ac_cv_prog_cc_c99" = xno; then
-	AC_MSG_ERROR([Building planes requires C99 enabled compiler])
-fi
-
 pkgconfigdir=${libdir}/pkgconfig
 AC_SUBST(pkgconfigdir)
 
