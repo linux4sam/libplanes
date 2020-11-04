@@ -98,8 +98,14 @@ AX_PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.4.0], [], [], [AC_MSG_ERROR([
 AX_PKG_CHECK_MODULES([CJSON], [], [libcjson >= 1.6.0], [], [AC_MSG_ERROR([
      cJSON is a hard dependency, but a sufficient version was not found.])])
 
-AX_PKG_CHECK_MODULES([LUA], [], [lua >= 5.3.1], [], [AC_MSG_ERROR([
-     liblua is a hard dependency, but a sufficient version was not found.])])
+AX_PKG_CHECK_MODULES([LUA], [], [lua >= 5.3.1], [have_lua=yes], [have_lua=no])
+if test "x${have_lua}" = xno; then
+    AX_PKG_CHECK_MODULES([LUA], [], [lua5.3 >= 5.3.1], [have_lua=yes], [have_lua=no])
+    if test "x${have_lua}" = xno; then
+        AC_MSG_ERROR([liblua is a hard dependency, but a sufficient version was
+            not found.])
+    fi
+fi
 
 PKG_CHECK_MODULES([DIRECTFB], [directfb >= 1.7.0], [have_directfb=yes], [have_directfb=no])
 AM_CONDITIONAL(HAVE_DIRECTFB, [test "x$have_directfb" != "xno"])
