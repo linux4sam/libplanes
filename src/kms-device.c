@@ -54,6 +54,9 @@ static const char *const connector_names[] = {
 	"eDP",
 	"Virtual",
 	"DSI",
+	"DPI",
+	"Writeback",
+	"SPI",
 };
 
 static void kms_device_probe_screens(struct kms_device *device)
