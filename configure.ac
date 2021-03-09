@@ -131,7 +131,7 @@ if test "x$PYTHON" = xyes; then
 
    if test "x$have_python" = "xyes"; then
       AC_MSG_CHECKING([for Python site-packages path])
-      PYTHON_VERSION='2.7'
+      PYTHON_VERSION=`$PKG_CONFIG --modversion python3`
       PYTHON_SITE_PKG=${prefix}/lib/python${PYTHON_VERSION}/site-packages
       AC_MSG_RESULT([$PYTHON_SITE_PKG])
       AC_SUBST([PYTHON_SITE_PKG])
