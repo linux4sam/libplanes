@@ -148,6 +148,14 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 		plane->gem_names[fb] = create_gem_name(plane->fbs[fb]);
 	}
 
+    /*
+     * It is important to set the rotation and alpha properties when requesting
+     * a plane as we don't know if it had been used before, and so we don't
+     * know it's current state.
+     */
+    plane_apply_rotate(plane, plane->rotate_degrees);
+    plane_apply_alpha(plane, plane->alpha);
+
 	return plane;
 abort:
 	plane_free(plane);
