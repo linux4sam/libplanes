@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from mpio import *
-import glob
 import os
 import signal
 from threading import Thread
@@ -17,8 +16,16 @@ def run():
     if cpu() == 'at91sam9x5':
         configs = ["default.config", "alpha.config", "sprite.config",
                    "alpha2.config", "paper.config", "rotate.config"]
+    elif cpu() == 'sama7d6':
+        configs = ["alpha.config", "alpha2.config", "default.config",
+                   "pan_2overlays.config", "paper.config", "parallax_2overlays.config",
+                   "rotate.config", "scale_2overlays.config", "sprite.config",
+                   "window_2overlays.config"]
     else:
-        configs = glob.glob("*.config")
+        configs = ["alpha.config", "alpha2.config", "default.config",
+                   "pan.config", "paper.config", "parallax.config",
+                   "rotate.config", "scale.config", "sprite.config",
+                   "window.config"]
     while not abort:
         for config in configs:
             proc = Popen(["planes", "-f", "500", "-c", config], close_fds=True)
