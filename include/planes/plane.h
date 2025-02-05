@@ -62,6 +62,8 @@ struct plane_data
 	struct kms_framebuffer** fbs;
 	/** The framebuffer.  Must call plane_map() to allocate this. */
 	void** bufs;
+	/** The DRM PRIME file descriptor. Must call plane_fb_export() to set this. */
+	int* prime_fds;
 	unsigned int front_buf;
 	/** The number of framebuffers. */
 	uint32_t buffer_count;
@@ -375,6 +377,23 @@ int plane_fb_map(struct plane_data* plane);
  * @param plane The plane.
  */
 void plane_fb_unmap(struct plane_data* plane);
+
+/**
+ * Export the framebuffer using a DRM PRIME file descriptor.
+ *
+ * @param plane The plane.
+ */
+int plane_fb_export(struct plane_data* plane);
+
+/**
+ * Opposite of plane_fb_export().
+ *
+ * @param plane The plane.
+ *
+ * @note Like plane_fb_unmap(), plane_fb_unexport() is automatically called from
+ * plane_free() through plane_fb_free().
+ */
+void plane_fb_unexport(struct plane_data* plane);
 
 /**
  * Reallocate the framebuffer to the specified height, width, and format.

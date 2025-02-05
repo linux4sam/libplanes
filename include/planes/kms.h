@@ -83,6 +83,8 @@ struct kms_framebuffer {
 	uint32_t handle;
 	uint32_t id;
 
+	int prime_fd;
+
 	void *ptr;
 };
 

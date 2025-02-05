@@ -78,6 +78,7 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 	fb->width = width;
 	fb->height = height;
 	fb->format = format;
+	fb->prime_fd = -1;
 
 	memset(&args, 0, sizeof(args));
 	args.width = width;
@@ -243,4 +244,27 @@ void kms_framebuffer_unmap(struct kms_framebuffer *fb)
 		munmap(fb->ptr, fb->size);
 		fb->ptr = NULL;
 	}
+}
+
+int kms_framebuffer_export(struct kms_framebuffer *fb, int *prime_fd)
+{
+	struct kms_device *device = fb->device;
+	struct drm_prime_handle args;
+	int err;
+
+	if (fb->prime_fd != -1) {
+		*prime_fd = fb->prime_fd;
+		return 0;
+	}
+
+	memset(&args, 0, sizeof(args));
+	args.handle = fb->handle;
+
+	err = drmIoctl(device->fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &args);
+	if (err < 0)
+		return -errno;
+
+	*prime_fd = fb->prime_fd = args.fd;
+
+	return 0;
 }

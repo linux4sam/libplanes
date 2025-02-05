@@ -90,9 +90,10 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 
 	plane->fbs = calloc(buffer_count, sizeof(struct kms_framebuffer*));
 	plane->bufs = calloc(buffer_count, sizeof(void*));
+	plane->prime_fds = calloc(buffer_count, sizeof(int));
 	plane->gem_names = calloc(buffer_count, sizeof(uint32_t*));
 
-	if (!plane->fbs || !plane->bufs || !plane->gem_names) {
+	if (!plane->fbs || !plane->bufs || !plane->prime_fds || !plane->gem_names) {
 		LOG("error: failed to allocate plane\n");
 		goto abort;
 	}
@@ -137,6 +138,7 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 				goto abort;
 			}
 		}
+		plane->prime_fds[fb] = -1;
 	}
 
 	plane->index = index;
@@ -168,6 +170,7 @@ static void plane_fb_free(struct plane_data* plane)
 	uint32_t fb;
 
 	plane_fb_unmap(plane);
+	plane_fb_unexport(plane);
 
 	for (fb = 0; fb < plane->buffer_count; fb++) {
 		if (plane->fbs[fb]) {
@@ -186,6 +189,8 @@ void plane_free(struct plane_data* plane)
 			free(plane->fbs);
 		if (plane->bufs)
 			free(plane->bufs);
+		if (plane->prime_fds)
+			free(plane->prime_fds);
 		if (plane->gem_names)
 			free(plane->gem_names);
 		free(plane);
@@ -463,6 +468,35 @@ void plane_fb_unmap(struct plane_data* plane)
 			plane->bufs[fb] = NULL;
 		}
 	}
+}
+
+int plane_fb_export(struct plane_data* plane)
+{
+	uint32_t fb;
+
+	for (fb = 0; fb < plane->buffer_count; fb++) {
+		if (plane->prime_fds[fb] == -1) {
+			int err;
+
+			err = kms_framebuffer_export(plane->fbs[fb], &plane->prime_fds[fb]);
+			if (err < 0)
+			{
+				LOG("error: kms_framebuffer_export() failed: %s\n",
+				    strerror(-err));
+				return err;
+			}
+		}
+	}
+
+	return 0;
+}
+
+void plane_fb_unexport(struct plane_data* plane)
+{
+	uint32_t fb;
+
+	for (fb = 0; fb < plane->buffer_count; fb++)
+		plane->prime_fds[fb] = -1;
 }
 
 int plane_flip(struct plane_data* plane, uint32_t target)

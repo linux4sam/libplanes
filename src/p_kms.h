@@ -57,6 +57,7 @@ struct kms_framebuffer *kms_framebuffer_create(struct kms_device *device,
 void kms_framebuffer_free(struct kms_framebuffer *fb);
 int kms_framebuffer_map(struct kms_framebuffer *fb, void **ptrp);
 void kms_framebuffer_unmap(struct kms_framebuffer *fb);
+int kms_framebuffer_export(struct kms_framebuffer *fb, int *prime_fd);
 
 struct kms_screen *kms_screen_create(struct kms_device *device, uint32_t id);
 void kms_screen_free(struct kms_screen *screen);
