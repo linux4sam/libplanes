@@ -24,7 +24,7 @@ libplanesinclude_HEADERS = $(top_srcdir)/include/planes/engine.h \
 	$(top_srcdir)/include/planes/kms.h \
 	$(top_srcdir)/include/planes/plane.h \
 	$(top_srcdir)/include/planes/fb.h
-libplanes_la_LDFLAGS = -version-info 1:1:0 -no-undefined
+libplanes_la_LDFLAGS = -version-info 2:0:0 -no-undefined
 
 pkgconfigdir = @pkgconfigdir@
 pkgconfig_DATA = $(top_builddir)/libplanes.pc
