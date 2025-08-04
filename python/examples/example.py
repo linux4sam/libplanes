@@ -21,6 +21,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+from mpio import cpu
 import planes
 import os
 import sys
@@ -38,8 +39,16 @@ primary = planes.plane_create(device, 1, 0,
 
 bs = 16
 
+match cpu():
+    case 'at91sam9x5':
+        nplanes = 1
+    case 'sama7d6':
+        nplanes = 2
+    case _:
+        nplanes = 3
+
 # create each of the overlays
-overlays = [planes.plane_create(device, 0, i, bs*3, bs*3, 0) for i in xrange(3)]
+overlays = [planes.plane_create(device, 0, i, bs*3, bs*3, 0) for i in range(nplanes)]
 
 # render the primary plane
 planes.render_fb_checker_pattern(primary.get_fb(0), 0x000000ff, 0xffffffff)

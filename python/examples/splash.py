@@ -38,7 +38,15 @@ def phh(height):
 fd = os.open("/dev/dri/card0", os.O_RDWR)
 device = planes.kms_device_open(fd);
 
-plane = planes.plane_create(device, 0, 0 if cpu() == 'at91sam9x5' else 2,
+match cpu():
+    case 'at91sam9x5':
+        nplanes = 1
+    case 'sama7d6':
+        nplanes = 2
+    case _:
+        nplanes = 3
+
+plane = planes.plane_create(device, 0, nplanes - 1,
                             device.get_screens(0).width,
                             device.get_screens(0).height,
                             planes.kms_format_val("DRM_FORMAT_XRGB8888"))
