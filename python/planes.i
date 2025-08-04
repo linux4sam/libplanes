@@ -21,10 +21,10 @@ typedef unsigned int uint32_t;
 %}
 
 %extend kms_device {
-	%pythoncode %{
-		def get_screens(self, index):
-			return _planes._kms_device_get_screen(self, index)
-	%}
+	struct kms_screen get_screens(int index)
+	{
+		return *($self->screens[index]);
+	}
 }
 
 %inline %{
@@ -35,8 +35,8 @@ typedef unsigned int uint32_t;
 %}
 
 %extend plane_data {
-	%pythoncode %{
-		def get_fb(self, index):
-			return _planes._plane_data_get_fb(self, index)
-	%}
+	struct kms_framebuffer get_fb(int index)
+	{
+		return *($self->fbs[index]);
+	}
 }
