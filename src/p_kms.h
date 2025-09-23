@@ -27,6 +27,7 @@
 #ifndef PLANES_P_KMS_H
 #define PLANES_P_KMS_H
 
+#include "drm-object.h"
 #include "planes/kms.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -44,6 +45,7 @@ struct kms_plane *kms_device_find_plane_by_type(struct kms_device *device,
 
 struct kms_crtc {
 	struct kms_device *device;
+	struct drm_object *drm_obj;
 	uint32_t id;
 };
 

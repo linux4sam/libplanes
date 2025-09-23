@@ -38,10 +38,26 @@ struct kms_crtc *kms_crtc_create(struct kms_device *device, uint32_t id)
 	crtc->device = device;
 	crtc->id = id;
 
+	crtc->drm_obj = malloc(sizeof(*(crtc->drm_obj)));
+	if (!crtc->drm_obj)
+		goto err;
+
+	crtc->drm_obj->id = id;
+	if (drm_obj_get_properties(device->fd, crtc->drm_obj, DRM_MODE_OBJECT_CRTC))
+		goto err;
+
 	return crtc;
+
+err:
+	kms_crtc_free(crtc);
+	return NULL;
 }
 
 void kms_crtc_free(struct kms_crtc *crtc)
 {
+	if (!crtc)
+		return;
+
+	drm_obj_free(crtc->drm_obj);
 	free(crtc);
 }

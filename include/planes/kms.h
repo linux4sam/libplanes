@@ -48,6 +48,9 @@ struct kms_device {
 
 	struct kms_plane **planes;
 	unsigned int num_planes;
+
+	drmModeAtomicReqPtr atomic_request;
+	bool modeset_needed;
 };
 
 /**
@@ -71,6 +74,13 @@ void kms_device_close(struct kms_device *device);
  */
 void kms_device_dump(struct kms_device *device);
 
+/**
+ * Commit the DRM state changes.
+ *
+ * @param device The KMS device.
+ */
+int kms_device_flush(struct kms_device *device, uint32_t flags);
+
 struct kms_framebuffer {
 	struct kms_device *device;
 
@@ -88,8 +98,11 @@ struct kms_framebuffer {
 	void *ptr;
 };
 
+struct drm_object;
+
 struct kms_screen {
 	struct kms_device *device;
+	struct drm_object *drm_obj;
 	bool connected;
 	uint32_t type;
 	uint32_t id;
@@ -104,6 +117,7 @@ struct kms_screen {
 struct kms_plane {
 	struct kms_device *device;
 	struct kms_crtc *crtc;
+	struct drm_object *drm_obj;
 	unsigned int type;
 	uint32_t id;
 

@@ -66,14 +66,24 @@ struct kms_screen *kms_screen_create(struct kms_device *device, uint32_t id)
 
 	kms_screen_probe(screen);
 
+	screen->drm_obj = malloc(sizeof(*(screen->drm_obj)));
+	if(!screen->drm_obj) {
+		kms_screen_free(screen);
+		return NULL;
+	}
+	screen->drm_obj->id = id;
+	drm_obj_get_properties(device->fd, screen->drm_obj, DRM_MODE_OBJECT_CONNECTOR);
+
 	return screen;
 }
 
 void kms_screen_free(struct kms_screen *screen)
 {
-	if (screen)
-		free(screen->name);
+	if (!screen)
+		return;
 
+	free(screen->name);
+	drm_obj_free(screen->drm_obj);
 	free(screen);
 }
 

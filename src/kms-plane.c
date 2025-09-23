@@ -29,7 +29,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "common.h"
 #include "p_kms.h"
+
+static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
+			    uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h,
+			    int crtc_x, int crtc_y, int crtc_w, int crtc_h);
 
 static int kms_plane_probe(struct kms_plane *plane)
 {
@@ -105,6 +110,15 @@ struct kms_plane *kms_plane_create(struct kms_device *device, uint32_t id)
 	plane->device = device;
 	plane->id = id;
 
+	plane->drm_obj = malloc(sizeof(*(plane->drm_obj)));
+	if (!plane->drm_obj) {
+		kms_plane_free(plane);
+		return NULL;
+	}
+
+	plane->drm_obj->id = id;
+	drm_obj_get_properties(device->fd, plane->drm_obj, DRM_MODE_OBJECT_PLANE);
+
 	kms_plane_probe(plane);
 
 	return plane;
@@ -112,63 +126,118 @@ struct kms_plane *kms_plane_create(struct kms_device *device, uint32_t id)
 
 int kms_plane_remove(struct kms_plane *plane)
 {
-	struct kms_device *device = plane->device;
-	int err;
-
-	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id,
-			      0, 0,
-			      0, 0,
-			      0, 0,
-			      0, 0,
-			      0, 0);
-	if (err < 0)
-		return -errno;
-
-	return 0;
+	return kms_plane_update(plane, NULL, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 void kms_plane_free(struct kms_plane *plane)
 {
+	if (!plane)
+		return;
+
+	drm_obj_free(plane->drm_obj);
 	free(plane->formats);
 	free(plane);
+}
+
+static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
+			    uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h,
+			    int crtc_x, int crtc_y, int crtc_w, int crtc_h)
+{
+	struct kms_device *device = plane->device;
+	int fb_id = fb ? fb->id : 0;
+	int crtc_id = fb_id ? plane->crtc->id : 0;
+	int ret;
+
+	if (!device->atomic_request) {
+		device->atomic_request = drmModeAtomicAlloc();
+		if (!device->atomic_request)
+			return -ENOMEM;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "FB_ID", fb_id);
+	if (ret) {
+		LOG("error: can't set FB_ID property (%d)\n", ret);
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_ID", crtc_id);
+	if (ret) {
+		LOG("error: can't set CRTC_ID property (%d)\n", ret);
+		goto out;
+	}
+
+	if (!fb_id || !crtc_id)
+		goto out;
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_X", src_x << 16);
+	if (ret) {
+		LOG("error: can't set SRC_X property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_Y", src_y << 16);
+	if (ret) {
+		LOG("error: can't set SRC_Y property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_W", src_w << 16);
+	if (ret) {
+		LOG("error: can't set SRC_W property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_H", src_h << 16);
+	if (ret) {
+		LOG("error: can't set SRC_H property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_X", crtc_x);
+	if (ret) {
+		LOG("error: can't set CRTC_X property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_Y", crtc_y);
+	if (ret) {
+		LOG("error: can't set CRTC_Y property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_W", crtc_w);
+	if (ret) {
+		LOG("error: can't set CRTC_W property\n");
+		goto out;
+	}
+
+	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_H", crtc_h);
+	if (ret) {
+		LOG("error: can't set CRTC_H property\n");
+		goto out;
+	}
+
+out:
+	return ret;
 }
 
 int kms_plane_set(struct kms_plane *plane, struct kms_framebuffer *fb,
 		  int x, int y, double scale_x, double scale_y)
 {
-	struct kms_device *device = plane->device;
-	int err;
-
 	int w = fb->width * scale_x;
 	int h = fb->height * scale_y;
 
-	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id, fb->id,
-			      0, x, y, w, h, 0 << 16,
-			      0 << 16, fb->width << 16, fb->height << 16);
-	if (err < 0)
-		return -errno;
-
-	return 0;
+	return kms_plane_update(plane, fb, 0, 0, fb->width, fb->height, x, y, w, h);
 }
 
 int kms_plane_set_pan(struct kms_plane *plane, struct kms_framebuffer *fb,
 		      int x, int y, uint32_t px, uint32_t py, uint32_t pw,
 		      uint32_t ph, double scale_x, double scale_y)
 {
-	struct kms_device *device = plane->device;
-	int err;
-
 	int w = pw * scale_x;
 	int h = ph * scale_y;
 
-	err = drmModeSetPlane(device->fd, plane->id, plane->crtc->id, fb->id,
-			      0,
-			      x, y, w, h,
-			      px << 16, py << 16, pw << 16, ph << 16);
-	if (err < 0)
-		return -errno;
-
-	return 0;
+	return kms_plane_update(plane, fb, px, py, pw, ph, x, y, w, h);
 }
 
 bool kms_plane_supports_format(struct kms_plane *plane, uint32_t format)

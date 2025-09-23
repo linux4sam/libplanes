@@ -1,5 +1,6 @@
 add_library(planes SHARED
     common.c
+    drm-object.c
     fb.c
     kms-crtc.c
     kms-device.c

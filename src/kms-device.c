@@ -198,17 +198,25 @@ static void kms_device_probe(struct kms_device *device)
 struct kms_device *kms_device_open(int fd)
 {
 	struct kms_device *device;
+	uint64_t cap;
 	int err;
 
-	err = drmSetClientCap(fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+	err = drmSetClientCap(fd, DRM_CLIENT_CAP_ATOMIC, 1);
 	if (err < 0) {
 		LOG("error: drmSetClientCap() failed: %d\n", err);
+		return NULL;
+	}
+
+	if (drmGetCap(fd, DRM_CAP_DUMB_BUFFER, &cap) || !cap) {
+		LOG("error: the drm device doesn't support dumb buffers\n");
+		return NULL;
 	}
 
 	device = calloc(1, sizeof(*device));
 	if (!device)
 		return NULL;
 
+	device->modeset_needed = true;
 	device->fd = fd;
 
 	kms_device_probe(device);
@@ -219,6 +227,9 @@ struct kms_device *kms_device_open(int fd)
 void kms_device_close(struct kms_device *device)
 {
 	unsigned int i;
+
+	if (device->atomic_request)
+		drmModeAtomicFree(device->atomic_request);
 
 	for (i = 0; i < device->num_planes; i++)
 		kms_plane_free(device->planes[i]);
@@ -600,7 +611,7 @@ void kms_device_dump(struct kms_device *device)
 		       crtc->mode.clock);
 		fb = drmModeGetFB(device->fd, crtc->buffer_id);
 		if (!fb) {
-			fprintf(stderr, "error drmModeGetFB()\n");
+			LOG("error: drmModeGetFB()\n");
 		} else {
 			printf("    FB Id: 0x%x\n", fb->fb_id);
 			printf("    FB Width: %d\n", fb->width);
@@ -611,4 +622,70 @@ void kms_device_dump(struct kms_device *device)
 			printf("    FB Handle: %d\n", fb->handle);
 		}
 	}
+}
+
+/*
+ * The flags parameter is not used right now. In the future it should
+ * allow to choose blocking or non blocking.
+ */
+int kms_device_flush(struct kms_device *dev, uint32_t flags)
+{
+	uint32_t commit_flags = DRM_MODE_ATOMIC_NONBLOCK;
+	uint32_t mode_blob_id;
+	int ret;
+
+	if (!dev)
+		return -EINVAL;
+
+	if (!dev->atomic_request)
+		return 0; // Discard flush requests without any state change.
+
+	if (dev->modeset_needed) {
+		struct drm_object *connector = dev->screens[0]->drm_obj;
+		struct drm_object *crtc = dev->crtcs[0]->drm_obj;
+		drmModeModeInfo mode = dev->screens[0]->mode;
+
+		ret = drmModeCreatePropertyBlob(dev->fd, &mode, sizeof(mode), &mode_blob_id);
+		if (ret) {
+			LOG("error: couldn't create a blob property\n");
+			return ret;
+		}
+
+		ret = drm_obj_set_property(dev->atomic_request, connector, "CRTC_ID", dev->crtcs[0]->id);
+		if (ret) {
+			LOG("error: can't set CRTC_ID property\n");
+			goto modeset_prop_error;
+		}
+
+		ret = drm_obj_set_property(dev->atomic_request, crtc, "MODE_ID", mode_blob_id);
+		if (ret) {
+			LOG("error: can't set MODE_ID property\n");
+			goto modeset_prop_error;
+		}
+
+		ret = drm_obj_set_property(dev->atomic_request, crtc, "ACTIVE", 1);
+		if (ret) {
+			LOG("error: can't set ACTIVE property\n");
+			goto modeset_prop_error;
+		}
+
+		commit_flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
+	}
+
+	ret = drmModeAtomicCommit(dev->fd, dev->atomic_request, commit_flags, NULL);
+	if (ret)
+		LOG("error: drmModeAtomicCommit failed: %d\n", ret);
+
+modeset_prop_error:
+
+	if (dev->modeset_needed) {
+		drmModeDestroyPropertyBlob(dev->fd, mode_blob_id);
+		if (!ret)
+			dev->modeset_needed = false;
+	}
+
+	drmModeAtomicFree(dev->atomic_request);
+	dev->atomic_request = NULL;
+
+	return ret;
 }

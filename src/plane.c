@@ -132,12 +132,6 @@ struct plane_data* plane_create_buffered(struct kms_device* device, int type,
 			LOG("error: failed to create fb\n");
 			goto abort;
 		}
-		if (type == DRM_PLANE_TYPE_PRIMARY) {
-			if (kms_screen_set(device->screens[0], device->crtcs[0], plane->fbs[fb])) {
-				LOG("error: failed to set CRTC\n");
-				goto abort;
-			}
-		}
 		plane->prime_fds[fb] = -1;
 	}
 
@@ -518,14 +512,11 @@ int plane_flip(struct plane_data* plane, uint32_t target)
 
 int plane_flip_async(struct plane_data* plane, uint32_t target)
 {
-	struct kms_device *device = plane->plane->device;
-
-	plane->front_buf = target;
-
-	if (drmModePageFlip(device->fd, plane->plane->crtc->id,
-			       plane->fbs[plane->front_buf]->id,
-			    DRM_MODE_PAGE_FLIP_ASYNC, NULL) < 0)
-		return -1;
-
-	return 0;
+	/*
+	 * With the switch to the atomic API, this function no longer makes sense
+	 * as it just modifies the drm states. The commit of the changes is handled
+	 * by kms_device_flush().
+	 * Keep it to not cause API breakage. Plan to remove it in the future.
+	 */
+	return plane_flip(plane, target);
 }

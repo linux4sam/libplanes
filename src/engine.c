@@ -989,6 +989,7 @@ void engine_run_once(struct kms_device* device, struct plane_data** planes,
 			plane_apply(planes[i]);
 		}
 	}
+	kms_device_flush(device, 0);
 
 	// only delay the delta if all the work we did took lss than the framedelay
 	clock_gettime(CLOCK_MONOTONIC, &now);
