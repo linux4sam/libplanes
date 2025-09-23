@@ -10,7 +10,7 @@ add_library(planes SHARED
     plane.c
 )
 
-set_target_properties(planes PROPERTIES VERSION 2.0.0 SOVERSION 2)
+set_target_properties(planes PROPERTIES VERSION 3.0.0 SOVERSION 3)
 
 target_sources(planes
     PUBLIC
