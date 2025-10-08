@@ -35,6 +35,8 @@ add_compile_options(-Winline)
 add_compile_options(-Wshadow)
 add_compile_options(-Wno-missing-field-initializers)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(LIBDRM REQUIRED libdrm>=2.4.0)

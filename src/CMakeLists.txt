@@ -1,4 +1,4 @@
-add_library(planes SHARED
+add_library(planes
     common.c
     drm-object.c
     fb.c
