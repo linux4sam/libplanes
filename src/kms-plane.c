@@ -150,9 +150,14 @@ static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
 
 	if (!device->atomic_request) {
 		device->atomic_request = drmModeAtomicAlloc();
-		if (!device->atomic_request)
+		if (!device->atomic_request) {
+			LOG("error: drmModeAtomicAlloc failed\n");
 			return -ENOMEM;
+		}
 	}
+
+	LOG("kms_plane_update: fd_id=%d crtc_id=%d src_x=%d src_y=%d src_w=%d src_h=%d crtc_x=%d crtc_y=%d crtc_w=%d crtc_h=%d\n",
+		fb_id, crtc_id, src_x, src_y, src_w, src_h, crtc_x, crtc_y, crtc_w, crtc_h);
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "FB_ID", fb_id);
 	if (ret) {
