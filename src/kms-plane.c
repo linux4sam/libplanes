@@ -223,6 +223,11 @@ static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
 	}
 
 out:
+	if (ret) {
+		drmModeAtomicFree(device->atomic_request);
+		device->atomic_request = NULL;
+	}
+
 	return ret;
 }
 
