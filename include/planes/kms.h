@@ -27,6 +27,7 @@
 #ifndef PLANES_KMS_H
 #define PLANES_KMS_H
 
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -50,6 +51,7 @@ struct kms_device {
 	unsigned int num_planes;
 
 	drmModeAtomicReqPtr atomic_request;
+	pthread_mutex_t req_lock;
 	bool modeset_needed;
 };
 

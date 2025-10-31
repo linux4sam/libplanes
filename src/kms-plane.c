@@ -26,6 +26,7 @@
 #endif
 
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -146,13 +147,20 @@ static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
 	struct kms_device *device = plane->device;
 	int fb_id = fb ? fb->id : 0;
 	int crtc_id = fb_id ? plane->crtc->id : 0;
-	int ret;
+	int ret, mutex_ret;
+
+	mutex_ret = pthread_mutex_lock(&device->req_lock);
+	if (mutex_ret) {
+		LOG("error: pthread_mutex_lock failed\n");
+		return mutex_ret;
+	}
 
 	if (!device->atomic_request) {
 		device->atomic_request = drmModeAtomicAlloc();
 		if (!device->atomic_request) {
 			LOG("error: drmModeAtomicAlloc failed\n");
-			return -ENOMEM;
+			ret = -ENOMEM;
+			goto out;
 		}
 	}
 
@@ -162,13 +170,13 @@ static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "FB_ID", fb_id);
 	if (ret) {
 		LOG("error: can't set FB_ID property (%d)\n", ret);
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_ID", crtc_id);
 	if (ret) {
 		LOG("error: can't set CRTC_ID property (%d)\n", ret);
-		goto out;
+		goto property_error;
 	}
 
 	if (!fb_id || !crtc_id)
@@ -177,55 +185,62 @@ static int kms_plane_update(struct kms_plane *plane, struct kms_framebuffer *fb,
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_X", src_x << 16);
 	if (ret) {
 		LOG("error: can't set SRC_X property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_Y", src_y << 16);
 	if (ret) {
 		LOG("error: can't set SRC_Y property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_W", src_w << 16);
 	if (ret) {
 		LOG("error: can't set SRC_W property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "SRC_H", src_h << 16);
 	if (ret) {
 		LOG("error: can't set SRC_H property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_X", crtc_x);
 	if (ret) {
 		LOG("error: can't set CRTC_X property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_Y", crtc_y);
 	if (ret) {
 		LOG("error: can't set CRTC_Y property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_W", crtc_w);
 	if (ret) {
 		LOG("error: can't set CRTC_W property\n");
-		goto out;
+		goto property_error;
 	}
 
 	ret = drm_obj_set_property(device->atomic_request, plane->drm_obj, "CRTC_H", crtc_h);
 	if (ret) {
 		LOG("error: can't set CRTC_H property\n");
-		goto out;
+		goto property_error;
 	}
 
-out:
+property_error:
 	if (ret) {
 		drmModeAtomicFree(device->atomic_request);
 		device->atomic_request = NULL;
+	}
+
+out:
+	mutex_ret = pthread_mutex_unlock(&device->req_lock);
+	if (mutex_ret) {
+		LOG("error: pthread_mutex_unlock failed\n");
+		ret = mutex_ret;
 	}
 
 	return ret;

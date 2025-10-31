@@ -26,6 +26,7 @@
 #endif
 
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -216,6 +217,12 @@ struct kms_device *kms_device_open(int fd)
 	if (!device)
 		return NULL;
 
+	if (pthread_mutex_init(&device->req_lock, NULL)) {
+		LOG("error: can't initialize the mutex\n");
+		free(device);
+		return NULL;
+	}
+
 	device->modeset_needed = true;
 	device->fd = fd;
 
@@ -248,6 +255,8 @@ void kms_device_close(struct kms_device *device)
 
 	if (device->fd >= 0)
 		close(device->fd);
+
+	pthread_mutex_destroy(&device->req_lock);
 
 	free(device);
 }
@@ -632,13 +641,20 @@ int kms_device_flush(struct kms_device *dev, uint32_t flags)
 {
 	uint32_t commit_flags = DRM_MODE_ATOMIC_NONBLOCK;
 	uint32_t mode_blob_id;
-	int ret;
+	int ret = 0, mutex_ret;
 
 	if (!dev)
 		return -EINVAL;
 
+	// Lock needed to prevent changes of a request while sending it, or the other way around.
+	mutex_ret = pthread_mutex_lock(&dev->req_lock);
+	if (mutex_ret) {
+		LOG("error: pthread_mutex_lock failed\n");
+		return mutex_ret;
+	}
+
 	if (!dev->atomic_request)
-		return 0; // Discard flush requests without any state change.
+		goto out; // Discard flush requests without any state change.
 
 	if (dev->modeset_needed) {
 		struct drm_object *connector = dev->screens[0]->drm_obj;
@@ -648,7 +664,7 @@ int kms_device_flush(struct kms_device *dev, uint32_t flags)
 		ret = drmModeCreatePropertyBlob(dev->fd, &mode, sizeof(mode), &mode_blob_id);
 		if (ret) {
 			LOG("error: couldn't create a blob property\n");
-			return ret;
+			goto out;
 		}
 
 		ret = drm_obj_set_property(dev->atomic_request, connector, "CRTC_ID", dev->crtcs[0]->id);
@@ -686,6 +702,13 @@ modeset_prop_error:
 
 	drmModeAtomicFree(dev->atomic_request);
 	dev->atomic_request = NULL;
+
+out:
+	mutex_ret = pthread_mutex_unlock(&dev->req_lock);
+	if (mutex_ret) {
+		LOG("error: pthread_mutex_unlock failed\n");
+		ret = mutex_ret;
+	}
 
 	return ret;
 }
