@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (C) 2017 Microchip Technology Inc.  All rights reserved.
 #   Joshua Henderson <joshua.henderson@microchip.com>
