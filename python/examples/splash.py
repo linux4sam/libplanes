@@ -76,6 +76,7 @@ while True:
         s = 100.0
     planes.plane_set_scale(plane, s / 100.0)
     planes.plane_apply(plane)
+    planes.kms_device_flush(device, 0)
     if s >= 100.0:
         break
     time.sleep(0.01)

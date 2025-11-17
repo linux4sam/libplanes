@@ -60,5 +60,6 @@ for i, overlay in enumerate(overlays):
     planes.render_fb_checker_pattern(overlay.get_fb(0), colors[i], colors[i])
     planes.plane_set_pos(overlay, bs*3*i, bs*3*i)
     planes.plane_apply(overlay)
+    planes.kms_device_flush(device, 0)
 
 raw_input("Press Enter to continue...")
