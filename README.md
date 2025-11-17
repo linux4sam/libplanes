@@ -35,7 +35,7 @@ is as follows:
 - cJSON >= 1.6.0
 - lua >= 5.3.1
 - cairo >= 1.14.6
-- Python >= 2.7
+- Python >= 3.0
 - swig
 - directfb >= 1.7.0 (optional)
 
