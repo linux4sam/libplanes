@@ -35,31 +35,30 @@ is as follows:
 - cJSON >= 1.6.0
 - lua >= 5.3.1
 - cairo >= 1.14.6
-- Python >= 2.7
-- swig
+- Python >= 3.0 (optional)
+- swig (optional)
 - directfb >= 1.7.0 (optional)
 
 ## Building
 
-Make sure you have the required dependencis listed above.  To cross compile, put
-the cross gcc path in your environment PATH variable and use the appropriate
-prefix for --host on the configure line.  For example:
+Make sure you have the required dependencies listed above.  To cross compile,
+use a linux4microchip SDK (either Buildroot or Yocto).
 
-    ./autogen.sh
-    ./configure --host=arm-buildroot-linux-gnueabihf
-    make
+    cmake -B build
+    cmake --build build
+    cmake --install build --prefix <installation_path>
 
-If you wish to statically link the applications, add the following to your
-configure line:
+If you wish to statically link the applications, set the BUILD_SHARED_LIBS
+option to off:
 
-    ./configure --enable-static --disable-shared LDFLAGS="-static"
+    cmake -B build_static -DBUILD_SHARED_LIBS=OFF
 
 
 ## API Documentation
 
 If you have doxygen installed, you can generate the API documentation by running:
 
-    make docs
+    cmake --build build -t docs
 
 The resulting documentation will be in the docs directory.
 
