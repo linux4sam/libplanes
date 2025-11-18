@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 
 project(libplanes
-    VERSION 2.0.0
+    VERSION 2.0.1
     DESCRIPTION "Microchip hardware LCD plane library"
     LANGUAGES C
 )
